@@ -34,8 +34,6 @@ export const MortgageRateTracker = ({
   // First, move these state declarations to the top of the component, before any hooks
   const [messageState, setMessageState] = useState('initial')
   const [animatedSavings, setAnimatedSavings] = useState(0)
-  const [showPotOfGold, setShowPotOfGold] = useState(false)
-  const [isReplaying, setIsReplaying] = useState(false)
 
   // Validate inputs
   const validatedInput = mortgageInputSchema.safeParse({
@@ -70,8 +68,6 @@ export const MortgageRateTracker = ({
     animationDuration,
     // Pause automatic animation if in debug mode
     startPaused: !!debugState,
-    // Reset animation when isReplaying is true
-    reset: isReplaying,
   })
 
   // Use debug state if provided, otherwise use calculated state
@@ -92,12 +88,12 @@ export const MortgageRateTracker = ({
   const monthlySavings = currentPayment - targetPayment
   const annualSavings = monthlySavings * 12
 
-  // Calculate the path point coordinates - now using percentages
-  const startPoint: Point = { x: "15%", y: "30%" }
-  const targetPoint: Point = { x: "50%", y: "50%" }
-  const endPoint: Point = { x: "85%", y: "30%" }
+  // Adjust the path point coordinates to ensure alignment
+  const startPoint: Point = { x: "15%", y: "40%" }
+  const targetPoint: Point = { x: "50%", y: "60%" }
+  const endPoint: Point = { x: "85%", y: "40%" }
 
-  // Convert percentage to pixels for animation
+  // Convert percentage to pixels for animation - adjust padding calculation
   const getPixelCoordinates = (percentage: Point, container: HTMLDivElement) => {
     const width = container.clientWidth - 48 // Subtract padding (24px on each side)
     const height = container.clientHeight - 48 // Subtract padding (24px on each side)
@@ -228,20 +224,15 @@ export const MortgageRateTracker = ({
   useEffect(() => {
     if (animationState === 'target-hit') {
       setMessageState('target-hit')
-      setShowPotOfGold(false)
     } else if (animationState === 'savings') {
-      // Add delay for "Target Rate Acquired" message
       const timer1 = setTimeout(() => {
         setMessageState('calculating')
       }, 4000)
 
       const timer2 = setTimeout(() => {
-        setMessageState('replay')
+        setMessageState('congratulations')
         
-        // Show pot of gold
-        setShowPotOfGold(true)
-
-        // Trigger confetti after the replay message appears
+        // Trigger confetti with money stack
         if (containerRef.current) {
           const rect = containerRef.current.getBoundingClientRect()
           const windowHeight = window.innerHeight
@@ -320,28 +311,8 @@ export const MortgageRateTracker = ({
       }
     } else {
       setMessageState('initial')
-      setShowPotOfGold(false)
     }
   }, [animationState])
-
-  // Add this new function
-  const handleReplay = () => {
-    setIsReplaying(true)
-    setMessageState('initial')
-    setShowPotOfGold(false)
-    setAnimatedSavings(0)
-    
-    // Reset tracker position to start
-    if (containerRef.current) {
-      const startPx = getPixelCoordinates(startPoint, containerRef.current)
-      trackerPosRef.current = startPx
-    }
-    
-    // Reset animation state after a brief delay
-    setTimeout(() => {
-      setIsReplaying(false)
-    }, 100)
-  }
 
   // Add debug controls if in debug mode
   const debugControls = debugState && (
@@ -383,15 +354,13 @@ export const MortgageRateTracker = ({
 
   return (
     <div 
-      className="w-[560px] min-w-[560px] mx-auto"
+      className="w-[350px] sm:w-[560px] mx-auto"
       role="region"
       aria-label="Mortgage Rate Tracker Visualization"
-      style={{ width: '560px', minWidth: '560px' }}
     >
       {debugControls}
       <div 
-        className="w-[560px] min-w-[560px] bg-gray-50 rounded-lg shadow-lg overflow-hidden mt-8"
-        style={{ width: '560px', minWidth: '560px' }}
+        className="w-[350px] sm:w-[560px] bg-gray-50 rounded-lg shadow-lg overflow-hidden mt-8"
       >
         {/* Header with glass effect */}
         <div 
@@ -400,11 +369,11 @@ export const MortgageRateTracker = ({
         >
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center mb-1 sm:mb-0">
-              <LineChart className="w-4 h-4 mr-1" aria-hidden="true" />
-              <h2 className="text-base font-light tracking-wide">RateTracker In Action</h2>
+              <LineChart className="w-3 h-3 sm:w-4 sm:h-4 mr-1" aria-hidden="true" />
+              <h2 className="text-xs sm:text-base font-light tracking-wide">RateTracker In Action</h2>
             </div>
-            <div className="flex items-center text-gray-400 text-xs">
-              <DollarSign className="w-3 h-3 mr-1" aria-hidden="true" />
+            <div className="flex items-center text-gray-400 text-[10px] sm:text-xs">
+              <DollarSign className="w-2 h-2 sm:w-3 sm:h-3 mr-1" aria-hidden="true" />
               <span>{formatCurrency(loanAmount).replace('$', '')} over {loanTerm} years</span>
             </div>
           </div>
@@ -413,8 +382,8 @@ export const MortgageRateTracker = ({
         {/* Main content area */}
         <div 
           ref={containerRef}
-          className="relative p-4"
-          style={{ height: "280px" }}
+          className="relative p-2 sm:p-4"
+          style={{ height: "200px", minHeight: "200px" }}
           role="img"
           aria-label={`Mortgage rate tracking from ${currentRate}% to target ${targetRate}%`}
           tabIndex={0}
@@ -435,7 +404,7 @@ export const MortgageRateTracker = ({
 
           {/* Current Rate Display - Visible during initial state */}
           <div 
-            className={`absolute left-16 top-8 font-mono text-sm transition-all duration-1000 px-4 py-1 rounded ${
+            className={`absolute left-16 top-6 font-mono text-sm transition-all duration-1000 px-4 py-1 rounded ${
               animationState === 'initial' 
                 ? 'opacity-100 scale-100' 
                 : 'opacity-0 scale-95'
@@ -456,7 +425,7 @@ export const MortgageRateTracker = ({
 
           {/* Digital readout display - Target Identified */}
           <div 
-            className={`absolute left-1/2 top-8 -translate-x-1/2 font-mono text-sm transition-all duration-1000 px-4 py-1 rounded ${
+            className={`absolute left-1/2 top-6 -translate-x-1/2 font-mono text-sm transition-all duration-1000 px-4 py-1 rounded ${
               animationState === 'tracking' 
                 ? 'opacity-100 scale-100' 
                 : 'opacity-0 scale-95'
@@ -476,13 +445,14 @@ export const MortgageRateTracker = ({
 
           {/* Digital readout display - Target Acquired / Calculating / Congratulations */}
           <div 
-            className={`absolute left-1/2 top-8 -translate-x-1/2 font-mono text-sm transition-all duration-1000 px-4 py-1 rounded ${
+            className={`absolute left-1/2 top-6 -translate-x-1/2 font-mono text-sm transition-all duration-1000 px-4 py-1 rounded ${
               (animationState === 'target-hit' || animationState === 'savings')
                 ? 'opacity-100 scale-100' 
                 : 'opacity-0 scale-95'
             }`}
             style={{
-              color: messageState === 'target-hit' ? '#ef4444' : '#32ff4a',
+              color: messageState === 'target-hit' ? '#ef4444' : 
+                    messageState === 'congratulations' ? '#32ff4a' : '#32ff4a',
               backgroundColor: 'rgba(0, 0, 0, 0.85)',
               fontFamily: 'Monaco, Consolas, monospace',
               letterSpacing: '0.1em',
@@ -493,50 +463,20 @@ export const MortgageRateTracker = ({
           >
             {messageState === 'target-hit' && 'TARGET RATE ACQUIRED'}
             {messageState === 'calculating' && 'CALCULATING SAVINGS'}
-            {messageState === 'replay' && 'CONGRATULATIONS ON YOUR SAVINGS'}
-          </div>
-
-          {/* Replay button - Show after congratulations message */}
-          <div 
-            className={`absolute left-1/2 top-24 -translate-x-1/2 transition-all duration-500 ${
-              messageState === 'replay'
-                ? 'opacity-100 translate-y-0'
-                : 'opacity-0 translate-y-4'
-            }`}
-          >
-            <button
-              onClick={handleReplay}
-              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-gray-900 rounded-md hover:bg-gray-800 transition-colors"
-            >
-              <svg
-                className="w-4 h-4"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-                <path d="M3 3v5h5" />
-                <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
-                <path d="M16 21h5v-5" />
-              </svg>
-              Replay Animation
-            </button>
+            {messageState === 'congratulations' && 'CONGRATULATIONS ON YOUR SAVINGS'}
           </div>
 
           {/* Target icon at intersection */}
           <div
             className={`absolute transition-all duration-500 ${
-              // Show during tracking, target-hit, and savings (unless pot of gold is showing)
-              (animationState === 'tracking' || animationState === 'target-hit' || (animationState === 'savings' && !showPotOfGold))
+              (animationState === 'tracking' || animationState === 'target-hit' || 
+               animationState === 'savings') && messageState !== 'congratulations'
                 ? 'opacity-100 scale-100' 
                 : 'opacity-0 scale-95'
             }`}
             style={{
               left: "50%",
-              top: "50%",
+              top: "60%",
               transform: 'translate(-50%, -50%)',
               zIndex: 35
             }}
@@ -557,11 +497,11 @@ export const MortgageRateTracker = ({
           {/* Initial radar dot - show during initial and tracking */}
           <div
             className={`absolute transition-opacity duration-500 ${
-              animationState === 'target-hit' || animationState === 'savings' ? 'opacity-0' : 'opacity-100'
+              animationState === 'initial' || animationState === 'tracking' ? 'opacity-100' : 'opacity-0'
             }`}
             style={{
-              left: "48px",
-              top: "48px",
+              left: `${startPoint.x}`,
+              top: `${startPoint.y}`,
               transform: "translate(-50%, -50%)",
               zIndex: 30
             }}
@@ -581,13 +521,13 @@ export const MortgageRateTracker = ({
           {/* Savings vertical bar animation */}
           <div 
             className={`absolute transition-all duration-[2000ms] ease-out ${
-              (messageState === 'calculating' || messageState === 'replay') ? 'opacity-100' : 'opacity-0'
+              (messageState === 'calculating' || messageState === 'congratulations') ? 'opacity-100' : 'opacity-0'
             }`}
             style={{
               right: '48px',
-              bottom: '48px',
+              bottom: '36px',
               width: '24px',
-              height: (messageState === 'calculating' || messageState === 'replay') ? '160px' : '0px',
+              height: (messageState === 'calculating' || messageState === 'congratulations') ? 'calc(100% - 96px)' : '0px',
               background: 'linear-gradient(to top, #32ff4a33, #32ff4a)',
               borderRadius: '4px',
               transformOrigin: 'bottom',
@@ -598,28 +538,26 @@ export const MortgageRateTracker = ({
           >
             {/* Centered amount display */}
             <div 
-              className="absolute whitespace-nowrap"
+              className="absolute whitespace-nowrap text-xs sm:text-sm font-bold"
               style={{
                 left: '50%',
                 top: '50%',
-                transform: 'translate(-50%, -50%)',
-                fontSize: '0.875rem',
-                fontWeight: '700',
+                transform: 'translate(-50%, -50%) rotate(-90deg)',
                 color: '#000',
                 zIndex: 10
               }}
             >
               {messageState === 'calculating' 
-                ? formatCurrency(animatedSavings) 
+                ? formatCurrency(animatedSavings)
                 : formatCurrency(annualSavings)
-              }/yr
+              }
             </div>
           </div>
 
           {/* SVG and animation elements */}
           <svg 
             className={`absolute inset-0 transition-opacity duration-500 ${
-              showPotOfGold ? 'opacity-0' : 'opacity-100'
+              messageState === 'congratulations' ? 'opacity-0' : 'opacity-100'
             }`}
             width="100%" 
             height="100%" 
@@ -663,7 +601,7 @@ export const MortgageRateTracker = ({
               vectorEffect="non-scaling-stroke"
             />
 
-            {/* Savings path */}
+            {/* Savings path - only show briefly during target hit */}
             {showSavings && (
               <line
                 x1={getSVGCoordinates(targetPoint).x}
@@ -709,113 +647,135 @@ export const MortgageRateTracker = ({
               />
             </div>
           </div>
+
+          {/* Add money stack component */}
+          <div 
+            className={`absolute left-1/2 top-24 -translate-x-1/2 transition-all duration-1000 ${
+              messageState === 'congratulations' 
+                ? 'opacity-100 scale-100 translate-y-0' 
+                : 'opacity-0 scale-95 -translate-y-4'
+            }`}
+            style={{
+              fontSize: '3rem',
+              filter: 'drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1))',
+              zIndex: 40
+            }}
+            role="img"
+            aria-label="Stack of money"
+          >
+            <div className="relative flex flex-col items-center">
+              <span className="animate-bounce" style={{ animationDuration: '2s' }}>💵</span>
+              <span className="absolute -bottom-2 transform scale-90 opacity-75">💵</span>
+              <span className="absolute -bottom-4 transform scale-80 opacity-50">💵</span>
+            </div>
+          </div>
         </div>
 
         {/* Summary section with cards */}
-        <div className={`pt-3 px-6 pb-8 border-t border-gray-200 transition-opacity duration-1000`}>
+        <div className="pt-2 sm:pt-3 px-2 sm:px-6 pb-4 sm:pb-8 border-t border-gray-200">
           <div className="flex flex-col items-center">
-            <div className="w-full max-w-[600px]">
-              {/* Card container with fixed height */}
-              <div className="relative h-[84px] mb-2">
+            <div className="w-full">
+              {/* Card container - restore absolute positioning */}
+              <div className="relative min-h-[280px] sm:min-h-[84px]">
                 {/* Current Rate Card - Show during initial state */}
                 <div
-                  className={`absolute w-full rounded-lg bg-white p-3 shadow-lg border-l-4 border-gray-800 transition-all duration-1000 ${
+                  className={`absolute w-full rounded-lg bg-white p-2 sm:p-3 shadow-lg border-l-4 border-gray-800 transition-all duration-1000 ${
                     animationState === 'initial'
                       ? 'opacity-100 translate-y-0'
-                      : 'opacity-0 translate-y-4'
+                      : 'opacity-0 translate-y-4 pointer-events-none'
                   }`}
                 >
                   <div className="flex flex-col">
-                    <div className="flex items-center justify-center text-gray-500 mb-2">
-                      <TrendingDown className="w-4 h-4 mr-1" aria-hidden="true" />
-                      <span className="text-sm font-medium">Current Rate</span>
+                    <div className="flex items-center justify-center text-gray-500 mb-1 sm:mb-2">
+                      <TrendingDown className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                      <span className="text-xs sm:text-sm font-medium">Current Rate</span>
                     </div>
-                    <div className="text-gray-900 text-2xl font-bold text-center mb-2">
+                    <div className="text-gray-900 text-lg sm:text-2xl font-bold text-center mb-1 sm:mb-2">
                       {currentRate}%
                     </div>
-                    <div className="flex items-center justify-between text-xs">
+                    <div className="flex items-center justify-between text-[10px] sm:text-xs">
                       <span className="text-gray-500">Monthly:</span>
                       <span className="text-gray-800 font-semibold">{formatCurrency(currentPayment)}</span>
                     </div>
                   </div>
                 </div>
 
-                {/* Target Rate Card - Show during tracking state and until three cards appear */}
+                {/* Target Rate Card - Show during tracking state */}
                 <div
-                  className={`absolute w-full rounded-lg bg-white p-3 shadow-lg border-l-4 border-red-500 transition-all duration-1000 ${
-                    (animationState === 'tracking' || (animationState === 'savings' && messageState !== 'calculating' && messageState !== 'congratulations'))
+                  className={`absolute w-full rounded-lg bg-white p-2 sm:p-3 shadow-lg border-l-4 border-red-500 transition-all duration-1000 ${
+                    (animationState === 'tracking' || (animationState === 'savings' && messageState !== 'calculating'))
                       ? 'opacity-100 translate-y-0'
-                      : 'opacity-0 translate-y-4'
+                      : 'opacity-0 translate-y-4 pointer-events-none'
                   }`}
                 >
                   <div className="flex flex-col">
-                    <div className="flex items-center justify-center text-gray-500 mb-2">
-                      <Target className="w-4 h-4 mr-1" aria-hidden="true" />
-                      <span className="text-sm font-medium">Target Rate</span>
+                    <div className="flex items-center justify-center text-gray-500 mb-1 sm:mb-2">
+                      <Target className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                      <span className="text-xs sm:text-sm font-medium">Target Rate</span>
                     </div>
-                    <div className="text-gray-900 text-2xl font-bold text-center mb-2">
+                    <div className="text-gray-900 text-lg sm:text-2xl font-bold text-center mb-1 sm:mb-2">
                       {targetRate}%
                     </div>
-                    <div className="flex items-center justify-between text-xs">
+                    <div className="flex items-center justify-between text-[10px] sm:text-xs">
                       <span className="text-gray-500">Monthly:</span>
                       <span className="text-gray-800 font-semibold">{formatCurrency(targetPayment)}</span>
                     </div>
                   </div>
                 </div>
 
-                {/* Three cards grid - Show during calculating and replay states */}
+                {/* Three cards grid - Show during calculating state */}
                 <div
-                  className={`absolute w-full grid grid-cols-3 gap-4 transition-all duration-1000 ${
-                    (messageState === 'calculating' || messageState === 'replay')
+                  className={`absolute w-full grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4 transition-all duration-1000 ${
+                    (messageState === 'calculating' || messageState === 'congratulations')
                       ? 'opacity-100 translate-y-0'
-                      : 'opacity-0 translate-y-4'
+                      : 'opacity-0 translate-y-4 pointer-events-none'
                   }`}
                 >
                   {/* Old Rate Card */}
-                  <div className="rounded-lg bg-white p-3 shadow-lg border-l-4 border-gray-800">
+                  <div className="rounded-lg bg-white p-2 sm:p-3 shadow-lg border-l-4 border-gray-800">
                     <div className="flex flex-col">
-                      <div className="flex items-center justify-center text-gray-500 mb-2">
-                        <TrendingDown className="w-4 h-4 mr-1" aria-hidden="true" />
-                        <span className="text-sm font-medium">Old Rate</span>
+                      <div className="flex items-center justify-center text-gray-500 mb-1 sm:mb-2">
+                        <TrendingDown className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                        <span className="text-xs sm:text-sm font-medium">Old Rate</span>
                       </div>
-                      <div className="text-gray-900 text-2xl font-bold text-center mb-2">
+                      <div className="text-gray-900 text-lg sm:text-2xl font-bold text-center mb-1 sm:mb-2">
                         {currentRate}%
                       </div>
-                      <div className="flex items-center justify-between text-xs">
+                      <div className="flex items-center justify-between text-[10px] sm:text-xs">
                         <span className="text-gray-500">Monthly:</span>
                         <span className="text-gray-800 font-semibold">{formatCurrency(currentPayment)}</span>
                       </div>
                     </div>
                   </div>
 
-                  {/* Target Rate Card (changed from New Rate) */}
-                  <div className="rounded-lg bg-white p-3 shadow-lg border-l-4 border-red-500">
+                  {/* Target Rate Card */}
+                  <div className="rounded-lg bg-white p-2 sm:p-3 shadow-lg border-l-4 border-red-500">
                     <div className="flex flex-col">
-                      <div className="flex items-center justify-center text-gray-500 mb-2">
-                        <Target className="w-4 h-4 mr-1" aria-hidden="true" />
-                        <span className="text-sm font-medium">Target Rate</span>
+                      <div className="flex items-center justify-center text-gray-500 mb-1 sm:mb-2">
+                        <Target className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                        <span className="text-xs sm:text-sm font-medium">Target Rate</span>
                       </div>
-                      <div className="text-gray-900 text-2xl font-bold text-center mb-2">
+                      <div className="text-gray-900 text-lg sm:text-2xl font-bold text-center mb-1 sm:mb-2">
                         {targetRate}%
                       </div>
-                      <div className="flex items-center justify-between text-xs">
+                      <div className="flex items-center justify-between text-[10px] sm:text-xs">
                         <span className="text-gray-500">Monthly:</span>
                         <span className="text-gray-800 font-semibold">{formatCurrency(targetPayment)}</span>
                       </div>
                     </div>
                   </div>
 
-                  {/* Annual Savings Card (changed from Savings) */}
-                  <div className="rounded-lg bg-white p-3 shadow-lg border-l-4 border-green-500">
+                  {/* Annual Savings Card */}
+                  <div className="rounded-lg bg-white p-2 sm:p-3 shadow-lg border-l-4 border-green-500">
                     <div className="flex flex-col">
-                      <div className="flex items-center justify-center text-gray-500 mb-2">
-                        <BarChart3 className="w-4 h-4 mr-1" aria-hidden="true" />
-                        <span className="text-sm font-medium">Annual Savings</span>
+                      <div className="flex items-center justify-center text-gray-500 mb-1 sm:mb-2">
+                        <BarChart3 className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                        <span className="text-xs sm:text-sm font-medium">Annual Savings</span>
                       </div>
-                      <div className="text-gray-900 text-2xl font-bold text-center mb-2">
+                      <div className="text-gray-900 text-lg sm:text-2xl font-bold text-center mb-1 sm:mb-2">
                         {formatCurrency(annualSavings)}
                       </div>
-                      <div className="flex items-center justify-between text-xs">
+                      <div className="flex items-center justify-between text-[10px] sm:text-xs">
                         <span className="text-gray-500">Monthly:</span>
                         <span className="text-gray-800 font-semibold">{formatCurrency(monthlySavings)}</span>
                       </div>
@@ -826,49 +786,7 @@ export const MortgageRateTracker = ({
             </div>
           </div>
         </div>
-
-        {/* Add Pot of Gold */}
-        <div
-          className={`absolute transition-all duration-1000 ${
-            showPotOfGold ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
-          }`}
-          style={{
-            left: "50%",
-            top: "50%",
-            transform: 'translate(-50%, -50%)',
-            fontSize: '3rem',
-            filter: 'drop-shadow(0 0 8px rgba(255, 215, 0, 0.5))',
-            zIndex: 40
-          }}
-          role="img"
-          aria-label="Pot of gold"
-        >
-          <div className="relative">
-            💰
-            <div 
-              className="absolute inset-0"
-              style={{
-                animation: showPotOfGold ? 'shine 2s infinite' : 'none'
-              }}
-            />
-          </div>
-        </div>
       </div>
-
-      {/* Add animation styles */}
-      <style jsx>{`
-        @keyframes shine {
-          0% {
-            filter: brightness(1);
-          }
-          50% {
-            filter: brightness(1.5);
-          }
-          100% {
-            filter: brightness(1);
-          }
-        }
-      `}</style>
     </div>
   )
 }
