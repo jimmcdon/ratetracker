@@ -1,9 +1,10 @@
 import type React from "react"
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
+import "./globals.css"
+import { ThemeProvider } from "@/components/theme-provider"
 import { MainNav } from "@/components/main-nav"
 import { Footer } from "@/components/footer"
-import "./globals.css"
 import { FooterTransition } from "@/components/footer-transition"
 import { CalculatorProvider } from "@/contexts/calculator-context"
 
@@ -27,19 +28,24 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
-      <body className={`${inter.className} min-h-screen bg-background flex flex-col`}>
-        <CalculatorProvider>
-          <MainNav openModal={() => {}} />
-          <main className="flex-grow">{children}</main>
-          <FooterTransition />
-          <Footer openModal={() => {}} />
-        </CalculatorProvider>
+    <html lang="en" suppressHydrationWarning>
+      <body className={`${inter.className} min-h-screen bg-background flex flex-col`} suppressHydrationWarning>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="light"
+          enableSystem={false}
+          disableTransitionOnChange
+          storageKey="ratetracker-theme"
+        >
+          <CalculatorProvider>
+            <MainNav />
+            <main className="flex-grow">{children}</main>
+            <Footer />
+          </CalculatorProvider>
+        </ThemeProvider>
       </body>
     </html>
   )
 }
-
-
 
 import './globals.css'

@@ -1,0 +1,1 @@
+// This file is intentionally empty as we're handling everything client-side for now 

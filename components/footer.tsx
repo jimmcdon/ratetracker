@@ -1,71 +1,41 @@
 "use client"
 
-import type React from "react"
+import Link from 'next/link'
 import { Facebook, Instagram, Twitter, Linkedin } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 
-interface FooterProps {
-  openModal: () => void
-}
-
-export function Footer({ openModal }: FooterProps) {
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    openModal()
-  }
-
+export function Footer() {
   return (
-    <footer className="bg-gray-900 text-white">
-      <div className="mx-auto max-w-7xl px-4 py-16">
-        <div className="grid md:grid-cols-2 gap-12 mb-16">
-          {/* Left Column */}
+    <footer className="bg-gray-900 text-white py-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
-            <div className="text-2xl font-bold italic text-white mb-4">RateTracker</div>
-            <p className="text-gray-300 max-w-md">Effortlessly Track your Rate, and Optimize Your Personal Finances.</p>
+            <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
+            <ul className="space-y-2">
+              <li>
+                <Link href="/" className="hover:text-gray-300">
+                  Home
+                </Link>
+              </li>
+              <li>
+                <Link href="/signup" className="hover:text-gray-300">
+                  Track Your Rate
+                </Link>
+              </li>
+              <li>
+                <Link href="/about" className="hover:text-gray-300">
+                  About Us
+                </Link>
+              </li>
+              <li>
+                <Link href="/contact" className="hover:text-gray-300">
+                  Contact
+                </Link>
+              </li>
+            </ul>
           </div>
-
-          {/* Right Column */}
-          <div>
-            <h3 className="text-2xl font-bold text-white mb-4">Join our newsletter</h3>
-            <p className="text-gray-300 mb-4">
-              Subscribe to our newsletter to get more free design courses and resources
-            </p>
-            <form onSubmit={handleSubmit} className="flex gap-2 max-w-md">
-              <Input
-                type="email"
-                placeholder="Enter your email"
-                className="flex-1 bg-gray-800 border-gray-700 text-white placeholder-gray-400"
-                required
-              />
-              <Button type="submit" className="bg-white text-gray-900 hover:bg-gray-200 transition-colors">
-                Subscribe
-              </Button>
-            </form>
-          </div>
-        </div>
-
-        {/* Bottom Section */}
-        <div className="flex flex-col sm:flex-row justify-between items-center pt-8 border-t border-gray-700">
-          <div className="text-sm text-gray-400 mb-4 sm:mb-0">Copyright © 2025 RateTracker. All Rights Reserved</div>
-          <div className="flex gap-6">
-            <a href="#" className="text-gray-400 hover:text-white transition-colors">
-              <Facebook className="h-5 w-5" />
-              <span className="sr-only">Facebook</span>
-            </a>
-            <a href="#" className="text-gray-400 hover:text-white transition-colors">
-              <Instagram className="h-5 w-5" />
-              <span className="sr-only">Instagram</span>
-            </a>
-            <a href="#" className="text-gray-400 hover:text-white transition-colors">
-              <Twitter className="h-5 w-5" />
-              <span className="sr-only">Twitter</span>
-            </a>
-            <a href="#" className="text-gray-400 hover:text-white transition-colors">
-              <Linkedin className="h-5 w-5" />
-              <span className="sr-only">LinkedIn</span>
-            </a>
-          </div>
+          {/* Add more footer sections as needed */}
         </div>
       </div>
     </footer>

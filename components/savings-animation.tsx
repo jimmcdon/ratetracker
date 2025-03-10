@@ -12,10 +12,26 @@ export default function SavingsAnimation() {
   const [monthsPassed, setMonthsPassed] = useState(0)
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
   const controls = useAnimation()
-  const [ref, inView] = useInView({
+  const { ref, inView } = useInView({
     triggerOnce: false,
     threshold: 0.1,
   })
+
+  const startAnimation = () => {
+    if (!isAnimating && inView) {
+      setIsAnimating(true)
+    }
+  }
+
+  useEffect(() => {
+    if (inView && !isAnimating) {
+      startAnimation()
+    }
+  }, [inView, isAnimating, startAnimation])
+
+  useEffect(() => {
+    startAnimation();
+  }, [startAnimation]);
 
   // Start animation when component comes into view
   useEffect(() => {
@@ -23,45 +39,6 @@ export default function SavingsAnimation() {
       startAnimation()
     }
   }, [inView, isAnimating])
-
-  const startAnimation = () => {
-    setIsAnimating(true)
-    setMonthsPassed(0)
-    setSavings(0)
-
-    // Reset the balance to starting amount
-    setBalance(5280)
-
-    // Clear any existing interval
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current)
-    }
-
-    // Start the animation interval
-    intervalRef.current = setInterval(() => {
-      setMonthsPassed((prev) => {
-        const newMonths = prev + 1
-        if (newMonths >= 12) {
-          if (intervalRef.current) clearInterval(intervalRef.current)
-          setTimeout(() => {
-            setIsAnimating(false)
-          }, 2000)
-        }
-        return newMonths
-      })
-
-      // Add monthly savings to balance
-      setBalance((prev) => prev + 432)
-      setSavings((prev) => prev + 432)
-
-      // Trigger the coin animation
-      controls.start({
-        y: [0, -20, 100],
-        opacity: [1, 1, 0],
-        transition: { duration: 1 },
-      })
-    }, 1000)
-  }
 
   // Clean up interval on unmount
   useEffect(() => {

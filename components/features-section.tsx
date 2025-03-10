@@ -9,6 +9,9 @@ export default function FeaturesSection() {
           <p className="text-lg text-slate-600">
             We do the tracking, when we hit your target reduction you get notified and we get you a lower payment.
           </p>
+          <p className="mt-4 text-lg text-gray-600">
+            Don&apos;t miss out on potential savings. Our advanced tracking system monitors rates and alerts you when it&apos;s time to consider refinancing.
+          </p>
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">

@@ -5,19 +5,15 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { X, Menu } from "lucide-react"
 
-interface MainNavProps {
-  openModal: () => void
-}
-
-export function MainNav({ openModal }: MainNavProps) {
+export function MainNav() {
   const [isOpen, setIsOpen] = useState(false)
 
   const menuItems = [
     { label: "Home", href: "/" },
-    { label: "About", href: "#" },
+    { label: "About", href: "/about" },
     { label: "Services", href: "#" },
-    { label: "Contact", href: "#" },
-    { label: "Track Your Rate", onClick: openModal },
+    { label: "Contact", href: "/contact" },
+    { label: "Track Your Rate", href: "/signup" },
   ]
 
   useEffect(() => {
@@ -41,26 +37,15 @@ export function MainNav({ openModal }: MainNavProps) {
           </div>
           <div className="hidden md:block">
             <div className="ml-10 flex items-baseline space-x-4">
-              {menuItems.map((item) =>
-                item.onClick ? (
-                  <Button
-                    key={item.label}
-                    onClick={item.onClick}
-                    variant="ghost"
-                    className="text-secondary hover:bg-slate-100 hover:text-slate-800"
-                  >
-                    {item.label}
-                  </Button>
-                ) : (
-                  <Link
-                    key={item.label}
-                    href={item.href}
-                    className="text-secondary hover:bg-slate-100 hover:text-slate-800 px-3 py-2 rounded-md text-sm font-medium"
-                  >
-                    {item.label}
-                  </Link>
-                ),
-              )}
+              {menuItems.map((item) => (
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  className="text-secondary hover:bg-slate-100 hover:text-slate-800 px-3 py-2 rounded-md text-sm font-medium"
+                >
+                  {item.label}
+                </Link>
+              ))}
             </div>
           </div>
           <div className="md:hidden">
@@ -89,30 +74,16 @@ export function MainNav({ openModal }: MainNavProps) {
             </div>
             <div className="mt-6">
               <nav className="grid gap-y-8">
-                {menuItems.map((item) =>
-                  item.onClick ? (
-                    <Button
-                      key={item.label}
-                      onClick={() => {
-                        item.onClick()
-                        setIsOpen(false)
-                      }}
-                      variant="ghost"
-                      className="text-secondary hover:bg-slate-100 hover:text-slate-800 w-full justify-start text-base font-medium"
-                    >
-                      {item.label}
-                    </Button>
-                  ) : (
-                    <Link
-                      key={item.label}
-                      href={item.href}
-                      className="text-secondary hover:bg-slate-100 hover:text-slate-800 px-3 py-2 rounded-md text-base font-medium"
-                      onClick={() => setIsOpen(false)}
-                    >
-                      {item.label}
-                    </Link>
-                  ),
-                )}
+                {menuItems.map((item) => (
+                  <Link
+                    key={item.label}
+                    href={item.href}
+                    className="text-secondary hover:bg-slate-100 hover:text-slate-800 px-3 py-2 rounded-md text-base font-medium"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    {item.label}
+                  </Link>
+                ))}
               </nav>
             </div>
           </div>

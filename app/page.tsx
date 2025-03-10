@@ -56,11 +56,6 @@ export const metadata: Metadata = {
 }
 
 export default function Home() {
-  const openModal = () => {
-    // Implement modal opening logic here
-    console.log("Opening modal")
-  }
-
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "WebSite",
@@ -81,7 +76,7 @@ export default function Home() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
-      <HeroSection openModal={openModal} />
+      <HeroSection />
 
       {/* Calculator section moved here, right after the hero */}
       <Suspense fallback={<div>Loading calculator...</div>}>
@@ -94,7 +89,7 @@ export default function Home() {
                 {/* Tabs added below the calculator */}
                 {/* Carousel navigation */}
                 <div className="mt-8 flex justify-center space-x-2">
-                  {["Default", "Term Shortening", "Cash Out", "Purchase"].map((tab, index) => (
+                  {["Default", "Term Shortening", "Cash Out", "Purchase"].map((tab) => (
                     <button
                       key={tab}
                       className="w-3 h-3 rounded-full bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
@@ -111,11 +106,12 @@ export default function Home() {
         </section>
       </Suspense>
 
-      <PainPointsSolutions />
-
       <Suspense fallback={<div>Loading how it works...</div>}>
         <HowItWorksSection />
       </Suspense>
+
+      <PainPointsSolutions />
+
       <Suspense fallback={<div>Loading features...</div>}>
         <FeaturesSection />
       </Suspense>
@@ -123,7 +119,7 @@ export default function Home() {
         <TestimonialsSection />
       </Suspense>
       <Suspense fallback={<div>Loading track to save...</div>}>
-        <TrackToSaveSection openModal={openModal} />
+        <TrackToSaveSection />
       </Suspense>
     </>
   )
