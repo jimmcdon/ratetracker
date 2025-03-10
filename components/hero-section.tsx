@@ -11,7 +11,7 @@ export default function HeroSection() {
       <div className="mx-auto max-w-7xl px-4">
         <div className="flex flex-col lg:flex-row items-center justify-between gap-8 lg:gap-16">
           {/* Left Column - Content */}
-          <div className="relative z-10 text-left lg:max-w-xl">
+          <div className="relative z-10 text-left lg:max-w-xl order-2 lg:order-1">
             <h1 id="hero-heading" className="text-4xl sm:text-5xl font-normal tracking-tight text-gray-900 lg:text-6xl mb-8">
               Track Your Rate
               <br />
@@ -30,7 +30,7 @@ export default function HeroSection() {
           </div>
 
           {/* Right Column - Interactive Graph */}
-          <div className="relative flex justify-center items-center w-full overflow-hidden">
+          <div className="relative flex justify-center items-center w-full overflow-hidden order-1 lg:order-2">
             <div className="w-full flex justify-center">
               <MortgageRateTracker />
             </div>
