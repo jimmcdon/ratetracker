@@ -95,11 +95,11 @@ export const MortgageRateTracker = ({
 
   // Convert percentage to pixels for animation - adjust padding calculation
   const getPixelCoordinates = (percentage: Point, container: HTMLDivElement) => {
-    const width = container.clientWidth - 48 // Subtract padding (24px on each side)
-    const height = container.clientHeight - 48 // Subtract padding (24px on each side)
+    const width = container.clientWidth - 16 // Subtract padding (8px on each side)
+    const height = container.clientHeight - 16 // Subtract padding (8px on each side)
     
-    const x = (parseFloat(percentage.x as string) / 100) * width + 24
-    const y = (parseFloat(percentage.y as string) / 100) * height + 24
+    const x = (parseFloat(percentage.x as string) / 100) * width + 8
+    const y = (parseFloat(percentage.y as string) / 100) * height + 8
     
     return { x, y }
   }
@@ -426,12 +426,12 @@ export const MortgageRateTracker = ({
           {/* Digital readout display - Target Identified */}
           <div 
             className={`absolute left-1/2 top-6 -translate-x-1/2 font-mono text-sm transition-all duration-1000 px-4 py-1 rounded ${
-              animationState === 'tracking' 
+              animationState === 'tracking' && messageState === 'initial'
                 ? 'opacity-100 scale-100' 
                 : 'opacity-0 scale-95'
             }`}
             style={{
-              color: '#32ff4a',
+              color: '#ffffff',
               backgroundColor: 'rgba(0, 0, 0, 0.75)',
               fontFamily: 'Monaco, Consolas, monospace',
               letterSpacing: '0.1em',
@@ -446,13 +446,12 @@ export const MortgageRateTracker = ({
           {/* Digital readout display - Target Acquired / Calculating / Congratulations */}
           <div 
             className={`absolute left-1/2 top-6 -translate-x-1/2 font-mono text-sm transition-all duration-1000 px-4 py-1 rounded ${
-              (animationState === 'target-hit' || animationState === 'savings')
+              (animationState === 'target-hit' || animationState === 'savings') && messageState !== 'initial'
                 ? 'opacity-100 scale-100' 
                 : 'opacity-0 scale-95'
             }`}
             style={{
-              color: messageState === 'target-hit' ? '#ef4444' : 
-                    messageState === 'congratulations' ? '#32ff4a' : '#32ff4a',
+              color: '#ffffff',
               backgroundColor: 'rgba(0, 0, 0, 0.85)',
               fontFamily: 'Monaco, Consolas, monospace',
               letterSpacing: '0.1em',
@@ -528,7 +527,7 @@ export const MortgageRateTracker = ({
               bottom: '36px',
               width: '24px',
               height: (messageState === 'calculating' || messageState === 'congratulations') ? 'calc(100% - 96px)' : '0px',
-              background: 'linear-gradient(to top, #32ff4a33, #32ff4a)',
+              background: 'linear-gradient(to top, rgba(75, 85, 99, 0.2), rgba(75, 85, 99, 0.8))',
               borderRadius: '4px',
               transformOrigin: 'bottom',
               display: 'flex',
@@ -672,7 +671,7 @@ export const MortgageRateTracker = ({
         </div>
 
         {/* Summary section with cards */}
-        <div className="pt-2 sm:pt-3 px-2 sm:px-6 pb-4 sm:pb-8 border-t border-gray-200">
+        <div className="pt-2 sm:pt-3 px-0 sm:px-2 pb-4 sm:pb-8 border-t border-gray-200">
           <div className="flex flex-col items-center">
             <div className="w-full">
               {/* Card container - restore absolute positioning */}
@@ -702,7 +701,7 @@ export const MortgageRateTracker = ({
 
                 {/* Target Rate Card - Show during tracking state */}
                 <div
-                  className={`absolute w-full rounded-lg bg-white p-2 sm:p-3 shadow-lg border-l-4 border-red-500 transition-all duration-1000 ${
+                  className={`absolute w-full rounded-lg bg-white p-2 sm:p-3 shadow-lg border-l-4 border-gray-800 transition-all duration-1000 ${
                     (animationState === 'tracking' || (animationState === 'savings' && messageState !== 'calculating'))
                       ? 'opacity-100 translate-y-0'
                       : 'opacity-0 translate-y-4 pointer-events-none'
@@ -749,7 +748,7 @@ export const MortgageRateTracker = ({
                   </div>
 
                   {/* Target Rate Card */}
-                  <div className="rounded-lg bg-white p-2 sm:p-3 shadow-lg border-l-4 border-red-500">
+                  <div className="rounded-lg bg-white p-2 sm:p-3 shadow-lg border-l-4 border-gray-800">
                     <div className="flex flex-col">
                       <div className="flex items-center justify-center text-gray-500 mb-1 sm:mb-2">
                         <Target className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
@@ -766,7 +765,7 @@ export const MortgageRateTracker = ({
                   </div>
 
                   {/* Annual Savings Card */}
-                  <div className="rounded-lg bg-white p-2 sm:p-3 shadow-lg border-l-4 border-green-500">
+                  <div className="rounded-lg bg-white p-2 sm:p-3 shadow-lg border-l-4 border-gray-800">
                     <div className="flex flex-col">
                       <div className="flex items-center justify-center text-gray-500 mb-1 sm:mb-2">
                         <BarChart3 className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />

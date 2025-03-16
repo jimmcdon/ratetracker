@@ -59,6 +59,7 @@
     "react-chartjs-2": "latest",
     "react-day-picker": "8.10.1",
     "react-dom": "^18.2.0",
+    "react-fast-marquee": "^1.6.5",
     "react-hook-form": "latest",
     "react-intersection-observer": "latest",
     "react-resizable-panels": "^2.1.7",

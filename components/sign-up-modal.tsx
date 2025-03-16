@@ -4,7 +4,7 @@ import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
-import { Dialog, DialogContent } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -85,6 +85,14 @@ export function SignUpModal({ isOpen, onClose }: SignUpModalProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[400px] p-6">
+        <DialogHeader>
+          <DialogTitle className="text-xl font-semibold text-gray-900">
+            Track Your Rate
+          </DialogTitle>
+          <DialogDescription className="text-gray-500">
+            Enter your information below to start tracking your mortgage rate and get notified when you can save.
+          </DialogDescription>
+        </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div className="space-y-2">
             <Label htmlFor="name" className="text-sm font-medium text-slate-600">

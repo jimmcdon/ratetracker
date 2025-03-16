@@ -7,6 +7,7 @@ import { MainNav } from "@/components/main-nav"
 import { Footer } from "@/components/footer"
 import { FooterTransition } from "@/components/footer-transition"
 import { CalculatorProvider } from "@/contexts/calculator-context"
+import { ButtonHoverProvider } from "@/contexts/ButtonHoverContext"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -19,7 +20,7 @@ export const metadata: Metadata = {
     index: true,
     follow: true,
   },
-    generator: 'v0.dev'
+  generator: 'v0.dev'
 }
 
 export default function RootLayout({
@@ -37,15 +38,15 @@ export default function RootLayout({
           disableTransitionOnChange
           storageKey="ratetracker-theme"
         >
-          <CalculatorProvider>
-            <MainNav />
-            <main className="flex-grow">{children}</main>
-            <Footer />
-          </CalculatorProvider>
+          <ButtonHoverProvider>
+            <CalculatorProvider>
+              <MainNav />
+              <main className="flex-grow">{children}</main>
+              <Footer />
+            </CalculatorProvider>
+          </ButtonHoverProvider>
         </ThemeProvider>
       </body>
     </html>
   )
 }
-
-import './globals.css'

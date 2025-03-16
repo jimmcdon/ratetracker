@@ -1,6 +1,7 @@
 "use client"
 
-import { X, MoreHorizontal } from "lucide-react"
+import { X, MoreHorizontal, TrendingUp, TrendingDown } from "lucide-react"
+import { cn } from "@/lib/utils"
 
 export function AnalyticsCard() {
   return (

@@ -1,137 +1,169 @@
 "use client"
 
-import Image from "next/image"
+import * as React from "react"
 import { motion } from "framer-motion"
+import Marquee from "react-fast-marquee"
+import { Star } from "lucide-react"
+import { cn } from "@/lib/utils"
+import Image from "next/image"
 
-const testimonials = [
+type Testimonial = {
+  content: string
+  author: string
+  role: string
+  company: string
+  rating: number
+  gradient: string
+}
+
+const testimonials: Testimonial[] = [
   {
-    quote: "RateTracker saved me over $15,000 on my mortgage!",
-    detail:
-      "The process was incredibly smooth. I just input my details, and RateTracker did all the heavy lifting. Within weeks, I had a much better rate.",
-    name: "Sarah Johnson",
-    company: "Homeowner",
-    location: "California",
-    image: "/placeholder.svg",
+    content:
+      "RateTracker helped me save over $400 per month on my mortgage. Their alerts were timely and the guidance was invaluable.",
+    author: "Sarah Johnson",
+    role: "Homeowner",
+    company: "San Francisco, CA",
+    rating: 5,
+    gradient: "from-gray-900/10 to-gray-100/20",
   },
   {
-    quote: "I couldn't believe how easy it was to save $20,000",
-    detail:
-      "RateTracker's interface is so user-friendly. It took me less than 10 minutes to set up, and now I'm saving a fortune on my mortgage payments.",
-    name: "Michael Chen",
-    company: "First-time buyer",
-    location: "New York",
-    image: "/placeholder.svg",
+    content:
+      "The combination of AI monitoring and human expertise made the refinancing process smooth and stress-free.",
+    author: "Michael Chen",
+    role: "Tech Professional",
+    company: "Seattle, WA",
+    rating: 5,
+    gradient: "from-gray-800/10 to-gray-100/20",
   },
   {
-    quote: "RateTracker helped me reduce my loan term and save $30,000",
-    detail:
-      "Not only did I get a lower rate, but I also shortened my loan term. The whole process was seamless, and the savings are incredible!",
-    name: "Emily Rodriguez",
-    company: "Property investor",
-    location: "Texas",
-    image: "/placeholder.svg",
+    content:
+      "I appreciate that they only contacted me when there was genuine savings potential. No spam, just real opportunities.",
+    author: "Emily Rodriguez",
+    role: "Small Business Owner",
+    company: "Austin, TX",
+    rating: 5,
+    gradient: "from-gray-700/10 to-gray-100/20",
   },
   {
-    quote: "Saved $25,000 and got out of a bad loan, thanks to RateTracker",
-    detail:
-      "I was stuck in a high-interest loan, but RateTracker found me a much better deal. The transition was smooth, and now I'm saving thousands every year.",
-    name: "David Thompson",
-    company: "Refinancer",
-    location: "Florida",
-    image: "/placeholder.svg",
+    content:
+      "Their platform saved me countless hours of rate monitoring and calculations. The ROI was immediate and significant.",
+    author: "David Kim",
+    role: "Financial Analyst",
+    company: "Chicago, IL",
+    rating: 5,
+    gradient: "from-gray-600/10 to-gray-100/20",
+  },
+  {
+    content:
+      "Finally, a service that respects my privacy while delivering real value. The savings were better than I expected.",
+    author: "Lisa Thompson",
+    role: "Healthcare Professional",
+    company: "Boston, MA",
+    rating: 5,
+    gradient: "from-gray-500/10 to-gray-100/20",
   },
 ]
 
-export default function TestimonialsSection() {
+const TestimonialCard = ({ testimonial }: { testimonial: Testimonial }) => {
   return (
-    <section className="py-24 overflow-hidden bg-gray-50 relative">
-      {/* Animated arrow background */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="arrow-line"></div>
-        <div className="pulsing-dot"></div>
-      </div>
-
-      <div className="mx-auto max-w-7xl px-4 relative z-10">
-        <h2 className="text-4xl font-normal text-center text-gray-900 mb-16">
-          Here's what our raving fans have to say about RateTracker
-        </h2>
-
-        <div className="relative">
-          <div className="flex flex-wrap justify-center gap-8">
-            {testimonials.map((testimonial, index) => (
-              <motion.div
-                key={index}
-                className="bg-white rounded-lg p-6 shadow-lg w-full md:w-[calc(50%-1rem)] lg:w-[calc(25%-1rem)] max-w-sm"
-                initial={{
-                  opacity: 0,
-                  y: 50,
-                }}
-                animate={{
-                  opacity: 1,
-                  y: 0,
-                }}
-                transition={{
-                  duration: 0.5,
-                  delay: index * 0.1,
-                }}
-              >
-                <div className="mb-4">
-                  <p className="text-xl font-medium text-gray-900 mb-2">"{testimonial.quote}"</p>
-                  {testimonial.detail && <p className="text-gray-600 text-sm">{testimonial.detail}</p>}
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <Image
-                    src={testimonial.image || "/placeholder.svg"}
-                    alt={`${testimonial.name}'s profile picture`}
-                    width={40}
-                    height={40}
-                    className="rounded-full"
-                  />
-                  <div>
-                    <div className="font-medium text-gray-900">{testimonial.name}</div>
-                    <div className="text-sm text-gray-500">
-                      {testimonial.company} • {testimonial.location}
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
+    <div
+      className={cn(
+        "group relative overflow-hidden rounded-2xl p-8 transition-all hover:shadow-lg",
+        "bg-gradient-to-br",
+        testimonial.gradient
+      )}
+    >
+      <div className="relative z-10 flex h-full flex-col justify-between">
+        <div>
+          <div className="flex items-center space-x-1">
+            {[...Array(testimonial.rating)].map((_, i) => (
+              <Star
+                key={i}
+                className="h-5 w-5 fill-gray-900 text-gray-900"
+              />
             ))}
+          </div>
+          <div className="mt-4 text-lg leading-normal text-gray-900">
+            {testimonial.content}
+          </div>
+        </div>
+        <div className="mt-6">
+          <div className="font-medium text-gray-900">{testimonial.author}</div>
+          <div className="text-sm text-gray-600">
+            {testimonial.role} • {testimonial.company}
           </div>
         </div>
       </div>
-      <style jsx>{`
-        .arrow-line {
-          position: absolute;
-          top: -10%;
-          left: -10%;
-          width: 120%;
-          height: 120%;
-          background: linear-gradient(to bottom right, transparent 49.5%, rgba(0, 0, 0, 0.1) 50%, transparent 50.5%);
-          animation: moveArrow 20s linear infinite;
-        }
-        .pulsing-dot {
-          position: absolute;
-          width: 10px;
-          height: 10px;
-          border-radius: 50%;
-          background-color: rgba(0, 0, 0, 0.3);
-          animation: moveDot 20s linear infinite, pulseDot 2s ease-in-out infinite;
-        }
-        @keyframes moveArrow {
-          0% { transform: translate(0, 0); }
-          100% { transform: translate(-10%, -10%); }
-        }
-        @keyframes moveDot {
-          0% { top: -5%; left: -5%; }
-          100% { top: 95%; left: 95%; }
-        }
-        @keyframes pulseDot {
-          0%, 100% { transform: scale(1); opacity: 0.3; }
-          50% { transform: scale(1.5); opacity: 0.7; }
-        }
-      `}</style>
+    </div>
+  )
+}
+
+const TestimonialsSection: React.FC = () => {
+  return (
+    <section className="py-24 bg-gray-50/50 overflow-hidden">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="text-center max-w-3xl mx-auto mb-16"
+        >
+          <div className="relative flex flex-col items-center justify-center space-y-4 px-6 py-8 md:px-8">
+            <h2 className="text-center text-3xl font-semibold tracking-tight text-gray-900 sm:text-4xl">
+              Trusted by Homeowners Nationwide
+            </h2>
+            <p className="max-w-2xl text-center text-gray-600">
+              Join thousands of satisfied homeowners who've discovered significant savings through our intelligent rate monitoring service.
+            </p>
+          </div>
+        </motion.div>
+
+        <div className="space-y-8">
+          {/* First Row - Left to Right */}
+          <Marquee
+            gradient={false}
+            speed={40}
+            pauseOnHover={true}
+            className="py-4"
+          >
+            <div className="flex gap-6">
+              {testimonials.slice(0, 3).map((testimonial) => (
+                <TestimonialCard key={testimonial.author} testimonial={testimonial} />
+              ))}
+            </div>
+          </Marquee>
+
+          {/* Second Row - Right to Left */}
+          <Marquee
+            gradient={false}
+            speed={40}
+            direction="right"
+            pauseOnHover={true}
+            className="py-4"
+          >
+            <div className="flex gap-6">
+              {testimonials.slice(3).map((testimonial) => (
+                <TestimonialCard key={testimonial.author} testimonial={testimonial} />
+              ))}
+            </div>
+          </Marquee>
+        </div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="mt-16 text-center"
+        >
+          <div className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-full bg-gray-100 text-sm text-gray-800">
+            <Star className="w-4 h-4 fill-gray-900 text-gray-900" />
+            <span>4.9/5 average rating from over 200+ homeowners</span>
+          </div>
+        </motion.div>
+      </div>
     </section>
   )
 }
+
+export default TestimonialsSection
 

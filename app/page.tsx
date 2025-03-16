@@ -4,18 +4,10 @@ import HeroSection from "@/components/hero-section"
 import PainPointsSolutions from "@/components/pain-points-solutions"
 import type { Metadata } from "next"
 import Script from "next/script"
-import SavingsAnimation from "@/components/savings-animation"
+import { CalculatorJourneySection } from "./sections/calculator-journey"
 
 const CalculatorCarousel = dynamic(() => import("@/components/calculator-carousel"), {
-  loading: () => <div>Loading...</div>,
-})
-
-const HowItWorksSection = dynamic(() => import("@/components/how-it-works-section"), {
-  loading: () => <div>Loading...</div>,
-})
-
-const FeaturesSection = dynamic(() => import("@/components/features-section"), {
-  loading: () => <div>Loading...</div>,
+  loading: () => <div>Loading calculator...</div>,
 })
 
 const TestimonialsSection = dynamic(() => import("@/components/testimonials-section"), {
@@ -78,43 +70,13 @@ export default function Home() {
       />
       <HeroSection />
 
-      {/* Calculator section moved here, right after the hero */}
+      {/* Calculator Journey Section */}
       <Suspense fallback={<div>Loading calculator...</div>}>
-        <section className="py-16 bg-white">
-          <div className="mx-auto max-w-7xl px-4">
-            <h2 className="text-3xl font-normal text-center text-primary mb-8">Calculate Your Mortgage Options</h2>
-            <div className="flex flex-col lg:flex-row gap-8 items-start">
-              <div className="w-full lg:w-2/3 order-2 lg:order-1">
-                <CalculatorCarousel />
-                {/* Tabs added below the calculator */}
-                {/* Carousel navigation */}
-                <div className="mt-8 flex justify-center space-x-2">
-                  {["Default", "Term Shortening", "Cash Out", "Purchase"].map((tab) => (
-                    <button
-                      key={tab}
-                      className="w-3 h-3 rounded-full bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                      aria-label={`View ${tab} calculator`}
-                    />
-                  ))}
-                </div>
-              </div>
-              <div className="w-full lg:w-1/3 order-1 lg:order-2">
-                <SavingsAnimation />
-              </div>
-            </div>
-          </div>
-        </section>
-      </Suspense>
-
-      <Suspense fallback={<div>Loading how it works...</div>}>
-        <HowItWorksSection />
+        <CalculatorJourneySection />
       </Suspense>
 
       <PainPointsSolutions />
 
-      <Suspense fallback={<div>Loading features...</div>}>
-        <FeaturesSection />
-      </Suspense>
       <Suspense fallback={<div>Loading testimonials...</div>}>
         <TestimonialsSection />
       </Suspense>
