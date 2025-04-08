@@ -352,7 +352,7 @@ export function StepCalculator({ onCalculate }: StepCalculatorProps) {
             </div>
             <div className="pt-4">
               <div className="w-full">
-                <ModalButton>Track Your Rate Now!</ModalButton>
+                <ModalButton>Track Your Rate</ModalButton>
               </div>
             </div>
           </div>

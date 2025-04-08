@@ -38,7 +38,7 @@ export function CalculatorJourneySectionTest() {
         {/* CTA Button */}
         <div className="mt-16 text-center">
           <div className="inline-block">
-            <ModalButton>Start Your Journey</ModalButton>
+            <ModalButton>Track Your Rate</ModalButton>
           </div>
         </div>
       </div>

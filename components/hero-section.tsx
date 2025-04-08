@@ -78,7 +78,7 @@ export default function HeroSection() {
               className="flex flex-col sm:flex-row items-start gap-4 mt-8"
             >
               <div className="rounded-md shadow">
-                <ModalButton>Start Tracking <ArrowRight className="ml-2 h-4 w-4" /></ModalButton>
+                <ModalButton>Track Your Rate</ModalButton>
               </div>
               <VideoModal videoUrl="https://www.youtube.com/embed/dQw4w9WgXcQ" />
             </motion.div>

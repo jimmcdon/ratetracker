@@ -233,7 +233,7 @@ export function StepCalculatorTest({ onCalculate }: StepCalculatorTestProps) {
               <p className="text-lg font-semibold">Your target rate is {targetRate}%</p>
             </div>
             <div className="w-full">
-              <ModalButton>Track Your Rate to Get Your Cash</ModalButton>
+              <ModalButton>Track Your Rate</ModalButton>
             </div>
           </div>
         )
@@ -246,7 +246,7 @@ export function StepCalculatorTest({ onCalculate }: StepCalculatorTestProps) {
               <p className="text-lg font-semibold">Your target rate is {targetRate}%</p>
             </div>
             <div className="w-full">
-              <ModalButton>Track Your Rate to Own Your Dream Home</ModalButton>
+              <ModalButton>Track Your Rate</ModalButton>
             </div>
           </div>
         )
@@ -259,7 +259,7 @@ export function StepCalculatorTest({ onCalculate }: StepCalculatorTestProps) {
               <p className="text-lg font-semibold">Your target rate is {targetRate}%</p>
             </div>
             <div className="w-full">
-              <ModalButton>Track Your Rate to Save</ModalButton>
+              <ModalButton>Track Your Rate</ModalButton>
             </div>
           </div>
         )
