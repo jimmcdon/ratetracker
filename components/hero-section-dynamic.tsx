@@ -1,10 +1,12 @@
 "use client"
 
 import { VideoModal } from "@/components/video-modal"
-import ModalButton from './modal-button'
+import { CTAButton } from "@/components/ui/cta-button"
 import { motion, AnimatePresence } from "framer-motion"
 import { useState, useEffect } from "react"
 import Image from 'next/image'
+import { Button } from "@/components/ui/button"
+import { DialogTrigger } from "@/components/ui/dialog"
 
 const benefitMessages = [
   { 
@@ -100,9 +102,13 @@ export default function HeroDynamic() {
           {/* Call to Action */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
             <div className="rounded-md shadow">
-              <ModalButton>Track Your Rate</ModalButton>
+              <CTAButton size="large" />
             </div>
-            <VideoModal videoUrl="https://www.youtube.com/embed/dQw4w9WgXcQ" />
+            <VideoModal videoUrl="https://www.youtube.com/embed/dQw4w9WgXcQ">
+              <Button variant="outline" size="lg" className="flex items-center gap-2">
+                Watch Demo
+              </Button>
+            </VideoModal>
           </div>
         </div>
       </div>
