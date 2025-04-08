@@ -123,14 +123,6 @@ export default function Home() {
 
       <div className="flex flex-col gap-8">
         <div className="bg-white py-8">
-          <h2 className="text-2xl font-semibold text-center mb-4">Original Version</h2>
-          <Suspense fallback={<div>Loading calculator...</div>}>
-            <CalculatorJourneySection />
-          </Suspense>
-        </div>
-
-        <div className="bg-white py-8">
-          <h2 className="text-2xl font-semibold text-center mb-4">Updated Version</h2>
           <Suspense fallback={<div>Loading calculator...</div>}>
             <CalculatorJourneySectionTest />
           </Suspense>

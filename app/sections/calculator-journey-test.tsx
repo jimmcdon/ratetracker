@@ -9,7 +9,7 @@ export function CalculatorJourneySectionTest() {
         {/* Section Header */}
         <div className="text-center mb-16">
           <h2 className="text-3xl font-semibold tracking-tight mb-4">
-            Calculate Your Savings and Start Your Journey
+            State Your Goal to Unlock Your Dreams
           </h2>
           <p className="text-gray-500 max-w-2xl mx-auto">
             Whether you want to lower your payment, unlock your cash, or own your dream home, we'll guide you through every step with personalized support and real-time rate tracking.

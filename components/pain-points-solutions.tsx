@@ -168,11 +168,10 @@ const PainPointsSolutions: React.FC = () => {
           className="text-center max-w-3xl mx-auto mb-16"
         >
           <h2 className="text-3xl font-semibold text-gray-900 mb-4">
-            Why Most Homeowners Miss Out on Mortgage Savings
+            Never Miss an Opportunity to Realize Your Dreams
           </h2>
           <p className="text-gray-500">
-            We've identified the key challenges that prevent homeowners from maximizing their mortgage savings.
-            Here's how RateTracker solves each one.
+            Does this sound familiar?
           </p>
         </motion.div>
 
