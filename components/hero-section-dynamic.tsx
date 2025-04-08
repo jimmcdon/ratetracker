@@ -100,7 +100,7 @@ export default function HeroDynamic() {
           {/* Call to Action */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
             <div className="rounded-md shadow">
-              <ModalButton>Start Tracking</ModalButton>
+              <ModalButton>Start Your Journey to Track Your Rate</ModalButton>
             </div>
             <VideoModal videoUrl="https://www.youtube.com/embed/dQw4w9WgXcQ" />
           </div>
