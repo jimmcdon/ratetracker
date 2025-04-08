@@ -1,13 +1,27 @@
 "use client"
 
 import { VideoModal } from "@/components/video-modal"
-import { Button } from "@/components/ui/button"
 import MortgageRateTracker from "./mortgage-rate-tracker"
 import ModalButton from './modal-button'
-import { motion } from "framer-motion"
-import { ArrowRight, TrendingDown, Wallet, Home } from "lucide-react"
+import { motion, AnimatePresence } from "framer-motion"
+import { useState, useEffect } from "react"
 
-export default function HeroSection() {
+const benefitMessages = [
+  { case: "Refinance", message: "Lower Your Payment When Rates Drop" },
+  { case: "Cash Out", message: "Unlock Your Cash at the Perfect Time" },
+  { case: "Purchase", message: "Own Your Dream Home at Your Target Rate" }
+];
+
+export default function HeroDynamic() {
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % benefitMessages.length);
+    }, 3000);
+    return () => clearInterval(timer);
+  }, []);
+
   return (
     <section className="relative overflow-hidden pt-24 md:pt-32 pb-16 bg-white" aria-labelledby="hero-heading">
       {/* Background Pattern */}
@@ -28,57 +42,32 @@ export default function HeroSection() {
             >
               <h1 id="hero-heading" className="text-4xl sm:text-5xl font-normal tracking-tight text-gray-900 lg:text-6xl mb-6">
                 Track Your Rate
-                <span className="block text-2xl sm:text-3xl lg:text-4xl mt-4 text-gray-600 font-light">Get More From Your Mortgage</span>
               </h1>
 
-              {/* Benefit Pills */}
-              <div className="space-y-4 mt-8">
-                <motion.div 
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.5, delay: 0.2 }}
-                  className="flex items-center gap-3 text-gray-700"
-                >
-                  <div className="bg-blue-50 p-2 rounded-full">
-                    <TrendingDown className="w-5 h-5 text-blue-600" />
-                  </div>
-                  <span className="text-lg">Save when rates drop</span>
-                </motion.div>
-
-                <motion.div 
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.5, delay: 0.4 }}
-                  className="flex items-center gap-3 text-gray-700"
-                >
-                  <div className="bg-green-50 p-2 rounded-full">
-                    <Wallet className="w-5 h-5 text-green-600" />
-                  </div>
-                  <span className="text-lg">Access equity at the right time</span>
-                </motion.div>
-
-                <motion.div 
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.5, delay: 0.6 }}
-                  className="flex items-center gap-3 text-gray-700"
-                >
-                  <div className="bg-purple-50 p-2 rounded-full">
-                    <Home className="w-5 h-5 text-purple-600" />
-                  </div>
-                  <span className="text-lg">Buy when the rate is right</span>
-                </motion.div>
+              <div className="h-24"> {/* Fixed height container for smooth transitions */}
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={currentIndex}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    transition={{ duration: 0.5 }}
+                    className="text-2xl sm:text-3xl text-gray-600"
+                  >
+                    {benefitMessages[currentIndex].message}
+                  </motion.div>
+                </AnimatePresence>
               </div>
             </motion.div>
 
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.8 }}
-              className="flex flex-col sm:flex-row items-start gap-4 mt-8"
+              transition={{ duration: 0.6, delay: 0.4 }}
+              className="flex flex-col sm:flex-row items-start gap-4"
             >
               <div className="rounded-md shadow">
-                <ModalButton>Start Tracking <ArrowRight className="ml-2 h-4 w-4" /></ModalButton>
+                <ModalButton>Start Tracking</ModalButton>
               </div>
               <VideoModal videoUrl="https://www.youtube.com/embed/dQw4w9WgXcQ" />
             </motion.div>
@@ -93,14 +82,10 @@ export default function HeroSection() {
           >
             <div className="w-full">
               <div className="relative">
-                {/* Animated border */}
-                <div 
-                  className="absolute -inset-0.5 bg-gradient-to-r from-gray-100 via-gray-900 to-gray-100 rounded-lg blur opacity-30 
+                <div className="absolute -inset-0.5 bg-gradient-to-r from-gray-100 via-gray-900 to-gray-100 rounded-lg blur opacity-30 
                   transition duration-1000 animate-gradient-x"
                   style={{ backgroundSize: '200% 100%', animationDelay: '1s' }}
                 ></div>
-                
-                {/* Calculator container */}
                 <div className="relative bg-white rounded-lg">
                   <MortgageRateTracker />
                 </div>
@@ -111,5 +96,4 @@ export default function HeroSection() {
       </div>
     </section>
   )
-}
-
+} 

@@ -9,10 +9,10 @@ export function CalculatorJourneySection() {
         {/* Section Header */}
         <div className="text-center mb-16">
           <h2 className="text-3xl font-semibold tracking-tight mb-4">
-            Find Your Target Rate and Start Your Journey
+            Calculate Your Savings and Start Your Journey
           </h2>
           <p className="text-gray-500 max-w-2xl mx-auto">
-            Calculate your potential savings and let us guide you through the refinancing process with personalized support every step of the way.
+            Whether you want to lower your payment, unlock your cash, or own your dream home, we'll guide you through every step with personalized support and real-time rate tracking.
           </p>
         </div>
 

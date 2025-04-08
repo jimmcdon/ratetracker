@@ -19,28 +19,28 @@ interface JourneyStep {
 const journeySteps: JourneyStep[] = [
   {
     id: 1,
-    title: "Find RateTracker.us",
-    description: "Start by submitting your Track Your Rate form to begin your refinancing journey.",
+    title: "Start Your Journey",
+    description: "Tell us your goal - whether it's lowering your payment, unlocking your cash, or owning your dream home.",
     icon: Search,
     details: [
       { title: "Time Required", value: "2 minutes" },
-      { title: "Next Step", value: "Information Gathering" }
+      { title: "Next Step", value: "Information Review" }
     ]
   },
   {
     id: 2,
-    title: "Organize Your Information",
-    description: "Gather and provide your current loan details so we can accurately track your rate.",
+    title: "Share Your Details",
+    description: "Provide your current situation and goals so we can personalize your rate tracking experience.",
     icon: FileText,
     details: [
-      { title: "Required Info", value: "Loan Amount, Term, Rate" },
-      { title: "Purpose", value: "Accurate Rate Tracking" }
+      { title: "Required Info", value: "Goals & Current Status" },
+      { title: "Purpose", value: "Custom Rate Tracking" }
     ]
   },
   {
     id: 3,
-    title: "Meet Your Broker",
-    description: "Get paired with a dedicated mortgage broker who will review your information and guide you through the process.",
+    title: "Expert Guidance",
+    description: "Connect with a dedicated mortgage expert who will understand your goals and create your personalized strategy.",
     icon: UserCheck,
     details: [
       { title: "Meeting Type", value: "Virtual Consultation" },
@@ -49,18 +49,18 @@ const journeySteps: JourneyStep[] = [
   },
   {
     id: 4,
-    title: "Set Your Target",
-    description: "Together we'll set and monitor your target rate, adjusting as needed based on market conditions.",
+    title: "Set Your Strategy",
+    description: "Define your target rate and timeline based on your specific goals and market conditions.",
     icon: Target,
     details: [
-      { title: "Strategy", value: "Custom Rate Goals" },
+      { title: "Strategy", value: "Personalized Plan" },
       { title: "Monitoring", value: "24/7 Automated" }
     ]
   },
   {
     id: 5,
-    title: "Get Notified",
-    description: "When your target rate is achievable, we'll notify you and assess if you're ready to refinance.",
+    title: "Stay Informed",
+    description: "Receive real-time updates when market conditions align with your goals and strategy.",
     icon: Bell,
     details: [
       { title: "Alert Method", value: "Email & SMS" },
@@ -69,11 +69,11 @@ const journeySteps: JourneyStep[] = [
   },
   {
     id: 6,
-    title: "Save Money",
-    description: "Receive your personalized offer and start saving thousands on your mortgage payments.",
+    title: "Achieve Your Goals",
+    description: "Get your personalized offer and take the final steps toward your mortgage goals.",
     icon: PiggyBank,
     details: [
-      { title: "Average Savings", value: "$350/month" },
+      { title: "Success Rate", value: "97% of clients" },
       { title: "Process Time", value: "30-45 days" }
     ]
   }
