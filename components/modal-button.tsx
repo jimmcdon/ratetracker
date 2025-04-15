@@ -2,13 +2,11 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { useButtonHover } from '@/contexts/ButtonHoverContext';
 import { cn } from '@/lib/utils';
 import { ArrowRight } from 'lucide-react';
 import { SignUpModal } from './sign-up-modal';
 
 export default function ModalButton({ children }: { children: React.ReactNode }) {
-  const { isVideoButtonHovered } = useButtonHover();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
@@ -27,12 +25,7 @@ export default function ModalButton({ children }: { children: React.ReactNode })
             "transition-all duration-200 ease-in-out",
             "focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-700",
             "relative group",
-            "after:absolute after:inset-0 after:rounded-md",
-            "after:border-transparent after:border-2",
-            "after:transition-all after:duration-200",
-            isVideoButtonHovered ? 
-              "bg-white text-gray-900 shadow-lg after:border-gray-900/20" :
-              "text-white bg-gray-900 after:border-gray-400/20"
+            "text-white bg-gray-900 hover:bg-gray-800"
           )}
         >
           <span className="relative flex items-center">

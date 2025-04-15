@@ -1,10 +1,10 @@
 'use client';
 
-import React, { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useState } from 'react';
 
 interface ButtonHoverContextType {
   isVideoButtonHovered: boolean;
-  setIsVideoButtonHovered: (hovered: boolean) => void;
+  setIsVideoButtonHovered: (value: boolean) => void;
 }
 
 const ButtonHoverContext = createContext<ButtonHoverContextType | undefined>(undefined);

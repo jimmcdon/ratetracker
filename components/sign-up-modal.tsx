@@ -12,23 +12,19 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { useToast } from "@/components/ui/use-toast"
 import { Spinner } from "@/components/ui/spinner"
 
+const formSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters"),
+  email: z.string().email("Please enter a valid email address"),
+  type: z.enum(["purchase", "refinance", "cashout"]),
+  refinanceType: z.enum(["lower-payment", "cash-out", "shortened-term"]).optional(),
+})
+
+type FormData = z.infer<typeof formSchema>
+
 interface SignUpModalProps {
   isOpen: boolean
   onClose: () => void
 }
-
-type RefinanceType = "lower-payment" | "cash-out" | "shortened-term"
-type FormType = "purchase" | "refinance"
-
-const formSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  email: z.string().email("Invalid email address"),
-  phone: z.string().regex(/^\+1\s$$\d{3}$$\s\d{3}-\d{4}$/, "Invalid phone number format"),
-  type: z.enum(["purchase", "refinance"] as const),
-  refinanceType: z.enum(["lower-payment", "cash-out", "shortened-term"] as const).optional(),
-})
-
-type FormData = z.infer<typeof formSchema>
 
 export function SignUpModal({ isOpen, onClose }: SignUpModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -66,7 +62,7 @@ export function SignUpModal({ isOpen, onClose }: SignUpModalProps) {
 
       toast({
         title: "Success!",
-        description: "Your information has been submitted. Check your email for confirmation.",
+        description: "Your information has been submitted. We'll be in touch soon!",
       })
       onClose()
       reset()
@@ -123,37 +119,25 @@ export function SignUpModal({ isOpen, onClose }: SignUpModalProps) {
             {errors.email && <p className="text-sm text-red-500">{errors.email.message}</p>}
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="phone" className="text-sm font-medium text-slate-600">
-              Phone Number
-            </Label>
-            <div className="flex gap-2">
-              <Input value="+1" disabled className="w-12 bg-slate-50 border-slate-200 text-center" />
-              <Input
-                id="phone"
-                type="tel"
-                placeholder="(123) 456-7890"
-                {...register("phone")}
-                className="flex-1 bg-slate-50 border-slate-200"
-                aria-invalid={errors.phone ? "true" : "false"}
-              />
-            </div>
-            {errors.phone && <p className="text-sm text-red-500">{errors.phone.message}</p>}
-          </div>
-
           <div className="space-y-3">
-            <Label className="text-sm font-medium text-slate-600">Do you want to refinance or purchase?</Label>
+            <Label className="text-sm font-medium text-slate-600">What are you looking to do?</Label>
             <RadioGroup {...register("type")} className="flex flex-col gap-2">
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="purchase" id="purchase" />
                 <Label htmlFor="purchase" className="text-sm">
-                  Purchase
+                  Purchase a Home
                 </Label>
               </div>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="refinance" id="refinance" />
                 <Label htmlFor="refinance" className="text-sm">
-                  Refinance
+                  Refinance Current Mortgage
+                </Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="cashout" id="cashout" />
+                <Label htmlFor="cashout" className="text-sm">
+                  Cash Out Refinance
                 </Label>
               </div>
             </RadioGroup>

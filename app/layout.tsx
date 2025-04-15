@@ -8,10 +8,13 @@ import { Footer } from "@/components/footer"
 import { FooterTransition } from "@/components/footer-transition"
 import { CalculatorProvider } from "@/contexts/calculator-context"
 import { ButtonHoverProvider } from "@/contexts/ButtonHoverContext"
+import { Toaster } from "@/components/ui/toaster"
+import { metadata as pageMetadata } from "./metadata"
 
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
+  ...pageMetadata,
   metadataBase: new URL("http://ratetracker.us"), // Changed to http for now, but should be https when available
   alternates: {
     canonical: "/",
@@ -30,7 +33,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.className} min-h-screen bg-background flex flex-col`} suppressHydrationWarning>
+      <body className={`${inter.className} min-h-screen bg-background flex flex-col relative`} suppressHydrationWarning>
         <ThemeProvider
           attribute="class"
           defaultTheme="light"
@@ -41,8 +44,9 @@ export default function RootLayout({
           <ButtonHoverProvider>
             <CalculatorProvider>
               <MainNav />
-              <main className="flex-grow">{children}</main>
+              <main className="flex-grow pt-20 bg-white">{children}</main>
               <Footer />
+              <Toaster />
             </CalculatorProvider>
           </ButtonHoverProvider>
         </ThemeProvider>
