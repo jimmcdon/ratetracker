@@ -6,33 +6,62 @@ interface PhoneMockupProps {
   variant: 'equity' | 'rate' | 'purchase'
 }
 
-const alertContent = {
+type AlertContent = {
+  equity: {
+    icon: string;
+    title: string;
+    message: string;
+    amount: string;
+    label: string;
+  };
+  rate: {
+    icon: string;
+    title: string;
+    message: string;
+    amount: string;
+    label: string;
+  };
+  purchase: {
+    icon: string;
+    title: string;
+    message: string;
+    submessage: string;
+    amount: string;
+    label: string;
+  };
+}
+
+const alertContent: AlertContent = {
   equity: {
     icon: "💰",
-    title: "Equity alert",
-    message: "Your home equity payout just improved",
-    amount: "$74,000",
-    label: "Cash out"
+    title: "Equity Available",
+    message: "Access up to $150,000",
+    amount: "$150,000",
+    label: "Available Equity"
   },
   rate: {
-    icon: "📊",
+    icon: "💸",
     title: "Rate Alert",
-    message: "Mortgage rate has dropped",
-    amount: "$1,350/mo",
-    label: "New payment"
+    message: "New rate available at 3% - Save $250/mo",
+    amount: "3%",
+    label: "New Rate"
   },
   purchase: {
     icon: "🏠",
-    title: "Rate Alert",
-    message: "Great news!",
-    submessage: "Your target rate available!",
-    amount: "$23,400",
-    label: "Estimated monthly payment"
+    title: "Target Rate Achieved",
+    message: "Your target rate has been achieved",
+    submessage: "Your new home payment is $2,340/mo",
+    amount: "$2,340",
+    label: "Monthly Payment"
   }
 }
 
 export function PhoneMockup({ variant }: PhoneMockupProps) {
   const content = alertContent[variant]
+
+  const isPurchaseVariant = (content: AlertContent[keyof AlertContent]): content is AlertContent['purchase'] => {
+    return 'submessage' in content;
+  }
 
   return (
     <div className="relative w-full max-w-[380px] aspect-[1/2]">
@@ -57,7 +86,7 @@ export function PhoneMockup({ variant }: PhoneMockupProps) {
               <div className="flex-1">
                 <div className="text-sm font-medium text-blue-600">{content.title}</div>
                 <div className="text-lg font-semibold mt-1">{content.message}</div>
-                {variant === 'purchase' && (
+                {isPurchaseVariant(content) && (
                   <div className="text-gray-600">{content.submessage}</div>
                 )}
                 <div className="mt-2">
