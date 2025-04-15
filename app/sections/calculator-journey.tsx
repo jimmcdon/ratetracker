@@ -1,10 +1,10 @@
-import { StepCalculator } from "@/components/calculators/step-calculator"
-import { JourneyTimeline } from "@/components/journey-timeline"
+import { StepCalculatorTest } from "@/components/calculators/step-calculator-test"
+import { JourneyTimelineTest } from "@/components/journey-timeline-test"
 import ModalButton from "@/components/modal-button"
 
 export function CalculatorJourneySection() {
   return (
-    <section className="py-24 bg-white">
+    <section className="py-24 bg-gray-50">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center mb-16">
@@ -23,7 +23,7 @@ export function CalculatorJourneySection() {
             <div className="lg:sticky lg:top-24 lg:overflow-auto">
               <div className="relative p-[2px] rounded-lg bg-gradient-to-r from-gray-200 via-gray-900 to-gray-200 animate-gradient-x">
                 <div className="relative bg-white rounded-lg">
-                  <StepCalculator />
+                  <StepCalculatorTest />
                 </div>
               </div>
             </div>
@@ -31,14 +31,14 @@ export function CalculatorJourneySection() {
 
           {/* Journey Column */}
           <div className="lg:pt-12">
-            <JourneyTimeline />
+            <JourneyTimelineTest />
           </div>
         </div>
 
         {/* CTA Button */}
         <div className="mt-16 text-center">
           <div className="inline-block">
-            <ModalButton>Track Your Rate</ModalButton>
+            <ModalButton>Start Your Journey</ModalButton>
           </div>
         </div>
       </div>

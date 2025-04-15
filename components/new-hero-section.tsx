@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { Lock, Headphones, Home } from "lucide-react"
+import { Lock, Headphones, Home, RefreshCcw, PiggyBank } from "lucide-react"
 import { PhoneMockup } from "./ui/phone-mockup"
 import ModalButton from './modal-button'
 
@@ -39,6 +39,53 @@ export default function NewHeroSection({ variant = 'rate' }: NewHeroSectionProps
   return (
     <section className="relative overflow-hidden py-12 sm:py-16 lg:py-20 bg-white">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        {/* Choice Buttons */}
+        <div className="mb-12">
+          <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => window.location.href = '/?type=rate'}
+              className={`flex items-center gap-3 px-6 py-4 rounded-xl w-full sm:w-auto ${
+                variant === 'rate'
+                  ? 'bg-gray-900 text-white shadow-lg'
+                  : 'bg-gray-50 text-gray-900 hover:bg-gray-100'
+              }`}
+            >
+              <RefreshCcw className="w-5 h-5" />
+              <span className="text-lg font-medium">Refinance</span>
+            </motion.button>
+
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => window.location.href = '/?type=purchase'}
+              className={`flex items-center gap-3 px-6 py-4 rounded-xl w-full sm:w-auto ${
+                variant === 'purchase'
+                  ? 'bg-gray-900 text-white shadow-lg'
+                  : 'bg-gray-50 text-gray-900 hover:bg-gray-100'
+              }`}
+            >
+              <Home className="w-5 h-5" />
+              <span className="text-lg font-medium">Buy a Home</span>
+            </motion.button>
+
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => window.location.href = '/?type=equity'}
+              className={`flex items-center gap-3 px-6 py-4 rounded-xl w-full sm:w-auto ${
+                variant === 'equity'
+                  ? 'bg-gray-900 text-white shadow-lg'
+                  : 'bg-gray-50 text-gray-900 hover:bg-gray-100'
+              }`}
+            >
+              <PiggyBank className="w-5 h-5" />
+              <span className="text-lg font-medium">Unlock Cash</span>
+            </motion.button>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-[1.5fr,1fr] items-start gap-8 md:gap-12">
           {/* Left Column - Content */}
           <div className="relative z-10 text-center md:text-left">

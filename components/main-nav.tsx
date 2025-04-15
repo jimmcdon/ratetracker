@@ -11,13 +11,6 @@ export function MainNav() {
   const [isOpen, setIsOpen] = useState(false)
   const [hasScrolled, setHasScrolled] = useState(false)
 
-  const menuItems = [
-    { label: "Home", href: "/" },
-    { label: "About", href: "/about" },
-    { label: "Services", href: "#" },
-    { label: "Contact", href: "/contact" },
-  ]
-
   useEffect(() => {
     const html = document.querySelector("html")
     if (html) html.style.overflow = isOpen ? "hidden" : ""
@@ -62,22 +55,8 @@ export function MainNav() {
               </div>
             </div>
             <div className="hidden md:block">
-              <div className="ml-10 flex items-center space-x-4">
-                {menuItems.map((item) => (
-                  <Link
-                    key={item.label}
-                    href={item.href}
-                    className={cn(
-                      "text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium",
-                      "transition-colors duration-200"
-                    )}
-                  >
-                    {item.label}
-                  </Link>
-                ))}
-                <div className="flex items-center gap-4">
-                  <ModalButton>Track your rate</ModalButton>
-                </div>
+              <div className="ml-10 flex items-center">
+                <ModalButton>Track your rate</ModalButton>
               </div>
             </div>
             <div className="md:hidden">
@@ -114,16 +93,6 @@ export function MainNav() {
             </div>
             <div className="mt-6">
               <nav className="grid gap-y-8">
-                {menuItems.map((item) => (
-                  <Link
-                    key={item.label}
-                    href={item.href}
-                    className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-base font-medium"
-                    onClick={() => setIsOpen(false)}
-                  >
-                    {item.label}
-                  </Link>
-                ))}
                 <div onClick={() => setIsOpen(false)}>
                   <ModalButton>Track your rate</ModalButton>
                 </div>

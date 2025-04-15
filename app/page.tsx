@@ -1,12 +1,11 @@
 'use client';
 
-import { Suspense, useState } from "react"
+import { Suspense, useState, useEffect } from "react"
 import dynamic from "next/dynamic"
 import NewHeroSection from "@/components/new-hero-section"
 import PainPointsSolutions from "@/components/pain-points-solutions"
 import Script from "next/script"
 import { CalculatorJourneySection } from "./sections/calculator-journey"
-import { CalculatorJourneySectionTest } from "./sections/calculator-journey-test"
 
 const CalculatorCarousel = dynamic(() => import("@/components/calculator-carousel"), {
   loading: () => <div>Loading calculator...</div>,
@@ -22,6 +21,15 @@ const TrackToSaveSection = dynamic(() => import("@/components/track-to-save-sect
 
 export default function Home() {
   const [variant, setVariant] = useState<'purchase' | 'equity' | 'rate'>('rate');
+
+  // Update variant based on URL parameter
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const type = urlParams.get('type') as 'purchase' | 'equity' | 'rate';
+    if (type && ['purchase', 'equity', 'rate'].includes(type)) {
+      setVariant(type);
+    }
+  }, []);
   
   const structuredData = {
     "@context": "https://schema.org",
@@ -43,60 +51,13 @@ export default function Home() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
-      
-      <div className="bg-white pt-4 pb-2">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-center gap-4">
-            <button
-              onClick={() => setVariant('purchase')}
-              className={`px-4 py-2 rounded-md ${
-                variant === 'purchase'
-                  ? 'bg-gray-900 text-white'
-                  : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
-              }`}
-            >
-              Purchase
-            </button>
-            <button
-              onClick={() => setVariant('equity')}
-              className={`px-4 py-2 rounded-md ${
-                variant === 'equity'
-                  ? 'bg-gray-900 text-white'
-                  : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
-              }`}
-            >
-              Cash Out
-            </button>
-            <button
-              onClick={() => setVariant('rate')}
-              className={`px-4 py-2 rounded-md ${
-                variant === 'rate'
-                  ? 'bg-gray-900 text-white'
-                  : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
-              }`}
-            >
-              Refi
-            </button>
-          </div>
-        </div>
-      </div>
 
       <NewHeroSection variant={variant} />
 
       <div className="flex flex-col gap-8">
-        <div className="bg-white py-8">
-          <h2 className="text-2xl font-semibold text-center mb-4">Original Version</h2>
-          <Suspense fallback={<div>Loading calculator...</div>}>
-            <CalculatorJourneySection />
-          </Suspense>
-        </div>
-
-        <div className="bg-white py-8">
-          <h2 className="text-2xl font-semibold text-center mb-4">Updated Version</h2>
-          <Suspense fallback={<div>Loading calculator...</div>}>
-            <CalculatorJourneySectionTest />
-          </Suspense>
-        </div>
+        <Suspense fallback={<div>Loading calculator...</div>}>
+          <CalculatorJourneySection />
+        </Suspense>
       </div>
 
       <PainPointsSolutions />
