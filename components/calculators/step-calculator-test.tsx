@@ -1,10 +1,10 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { ArrowRight, ArrowLeft, Calculator, ArrowRightCircle, Home, Banknote, TrendingDown } from "lucide-react"
+import { ArrowRight, ArrowLeft, Calculator, ArrowRightCircle, Home, Banknote, TrendingDown, Mail, User, Calendar } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useCalculatorContext } from "@/contexts/calculator-context"
 import { formatCurrency } from "@/lib/utils/calculator"
@@ -12,11 +12,13 @@ import { calculateMonthlyPayment } from "@/lib/utils/calculator"
 import ModalButton from '@/components/modal-button'
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
+import { Calendar as CalendarComponent } from "@/components/ui/calendar"
 
 type LoanGoal = 'purchase' | 'refinance' | 'cashout'
 
 interface StepCalculatorTestProps {
   onCalculate?: (monthlySavings: number) => void
+  onProgressChange?: (stage: 'initial' | 'details' | 'complete') => void
 }
 
 type Step = {
@@ -81,10 +83,25 @@ const steps: Step[] = [
     id: "results",
     title: "Here's your personalized rate target",
     description: "We'll notify you when rates match your goals."
+  },
+  {
+    id: "contact-info",
+    title: "Almost there!",
+    description: "Let's make sure we can reach you with rate updates."
+  },
+  {
+    id: "schedule-broker",
+    title: "Would you like to speak with a broker?",
+    description: "Get expert guidance on your mortgage journey."
+  },
+  {
+    id: "calendar",
+    title: "Schedule Your Call",
+    description: "Choose a time that works best for you."
   }
 ]
 
-export function StepCalculatorTest({ onCalculate }: StepCalculatorTestProps) {
+export function StepCalculatorTest({ onCalculate, onProgressChange }: StepCalculatorTestProps) {
   const { setMonthlySavings, setYearlySavings } = useCalculatorContext()
   const [currentStep, setCurrentStep] = useState(0)
   const [loanGoal, setLoanGoal] = useState<LoanGoal | null>(null)
@@ -96,6 +113,11 @@ export function StepCalculatorTest({ onCalculate }: StepCalculatorTestProps) {
   const [downPayment, setDownPayment] = useState("")
   const [loanTerm, setLoanTerm] = useState("")
   const [targetPayment, setTargetPayment] = useState("")
+  const [name, setName] = useState("")
+  const [email, setEmail] = useState("")
+  const [wantsBrokerCall, setWantsBrokerCall] = useState<boolean | null>(null)
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined)
+  const [selectedTime, setSelectedTime] = useState<string | undefined>(undefined)
 
   const getVisibleSteps = () => {
     if (!loanGoal) return steps.filter(step => step.id === "goal")
@@ -111,6 +133,9 @@ export function StepCalculatorTest({ onCalculate }: StepCalculatorTestProps) {
         const currentPayment = getCurrentPayment()
         const defaultTarget = Math.floor(currentPayment / 500) * 500
         setTargetPayment(defaultTarget.toString())
+      }
+      if (currentStep === 0 && onProgressChange) {
+        onProgressChange('details')
       }
       setCurrentStep(current => current + 1)
     }
@@ -190,19 +215,62 @@ export function StepCalculatorTest({ onCalculate }: StepCalculatorTestProps) {
   }
 
   const handleCalculate = () => {
-    const current = getCurrentPayment()
-    const target = parseFloat(targetPayment)
+    const currentPayment = getCurrentPayment()
+    const monthlySavings = currentPayment - parseFloat(targetPayment)
     
-    if (!isNaN(current) && !isNaN(target)) {
-      const monthlySavings = current - target
-      const yearlySavings = monthlySavings * 12
-      
-      setMonthlySavings(monthlySavings)
-      setYearlySavings(yearlySavings)
-      onCalculate?.(monthlySavings)
-      handleNext()
+    setMonthlySavings(monthlySavings)
+    setYearlySavings(monthlySavings * 12)
+    
+    if (onCalculate) {
+      onCalculate(monthlySavings)
+    }
+
+    if (onProgressChange) {
+      onProgressChange('complete')
+    }
+    
+    // Find the index of the results step
+    const resultsStepIndex = visibleSteps.findIndex(step => step.id === "results")
+    setCurrentStep(resultsStepIndex)
+  }
+
+  const getSummaryData = () => {
+    return {
+      loanType: loanGoal,
+      propertyValue: propertyValue ? formatCurrency(parseFloat(propertyValue)) : '',
+      loanAmount: loanAmount ? formatCurrency(parseFloat(loanAmount)) : '',
+      cashAmount: cashAmount ? formatCurrency(parseFloat(cashAmount)) : '',
+      currentRate: currentRate,
+      marketRate: marketRate,
+      downPayment: downPayment ? formatCurrency(parseFloat(downPayment)) : '',
+      loanTerm: loanTerm ? `${loanTerm} years` : '',
+      targetPayment: targetPayment ? formatCurrency(parseFloat(targetPayment)) : '',
+      targetRate: calculateTargetRate()?.toFixed(2) + '%',
+      currentPayment: formatCurrency(getCurrentPayment())
     }
   }
+
+  const handleContactSubmit = () => {
+    console.log('Submitting contact info:', { name, email, ...getSummaryData() })
+    const nextStepIndex = visibleSteps.findIndex(step => step.id === "schedule-broker")
+    setCurrentStep(nextStepIndex)
+  }
+
+  const handleBrokerPreference = (wantsBroker: boolean) => {
+    setWantsBrokerCall(wantsBroker)
+    console.log('Broker call preference:', wantsBroker)
+  }
+
+  const handleBrokerPreferenceClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    if (wantsBrokerCall) {
+      // If they want a call, move to calendar step
+      const calendarStepIndex = visibleSteps.findIndex(step => step.id === "calendar");
+      setCurrentStep(calendarStepIndex);
+    } else {
+      handleBrokerPreference(false);
+    }
+  };
 
   const formatInput = (value: string, isPercent = false) => {
     let formatted = value.replace(/[^\d.]/g, '')
@@ -216,57 +284,87 @@ export function StepCalculatorTest({ onCalculate }: StepCalculatorTestProps) {
   const getResultsContent = () => {
     if (!loanGoal) return null
     
-    const targetRate = calculateTargetRate().toFixed(2)
+    const targetRate = calculateTargetRate()
+    if (typeof targetRate === 'undefined') return null
+    
+    const formattedTargetRate = targetRate.toFixed(2)
     const newLoanAmount = loanGoal === 'cashout' 
       ? parseFloat(loanAmount) + parseFloat(cashAmount)
       : loanGoal === 'purchase'
       ? parseFloat(propertyValue) - parseFloat(downPayment)
       : parseFloat(loanAmount)
 
-    switch (loanGoal) {
-      case 'cashout':
-        return (
-          <div className="text-center space-y-4">
+    const ResultContent = () => {
+      switch (loanGoal) {
+        case 'cashout':
+          return (
             <div className="space-y-2">
-              <p className="text-lg">For ${formatCurrency(parseFloat(cashAmount))} cash out</p>
-              <p className="text-lg">with a new loan amount of ${formatCurrency(newLoanAmount)}</p>
-              <p className="text-lg font-semibold">Your target rate is {targetRate}%</p>
+              <p className="text-lg">For {formatCurrency(parseFloat(cashAmount))} cash out</p>
+              <p className="text-lg">with a new loan amount of {formatCurrency(newLoanAmount)}</p>
+              <p className="text-lg font-semibold">Your target rate is {formattedTargetRate}%</p>
             </div>
-            <div className="w-full">
-              <ModalButton>Track Your Rate to Get Your Cash</ModalButton>
-            </div>
-          </div>
-        )
-      case 'purchase':
-        return (
-          <div className="text-center space-y-4">
+          )
+        case 'purchase':
+          return (
             <div className="space-y-2">
-              <p className="text-lg">For a ${formatCurrency(parseFloat(propertyValue))} home</p>
-              <p className="text-lg">with ${formatCurrency(parseFloat(downPayment))} down</p>
-              <p className="text-lg font-semibold">Your target rate is {targetRate}%</p>
+              <p className="text-lg">For a {formatCurrency(parseFloat(propertyValue))} home</p>
+              <p className="text-lg">with {formatCurrency(parseFloat(downPayment))} down</p>
+              <p className="text-lg font-semibold">Your target rate is {formattedTargetRate}%</p>
             </div>
-            <div className="w-full">
-              <ModalButton>Track Your Rate to Own Your Dream Home</ModalButton>
-            </div>
-          </div>
-        )
-      case 'refinance':
-        return (
-          <div className="text-center space-y-4">
+          )
+        case 'refinance':
+          return (
             <div className="space-y-2">
-              <p className="text-lg">Current Payment: ${formatCurrency(getCurrentPayment())}</p>
-              <p className="text-lg">Target Payment: ${formatCurrency(parseFloat(targetPayment))}</p>
-              <p className="text-lg font-semibold">Your target rate is {targetRate}%</p>
+              <p className="text-lg">Current Payment: {formatCurrency(getCurrentPayment())}</p>
+              <p className="text-lg">Target Payment: {formatCurrency(parseFloat(targetPayment))}</p>
+              <p className="text-lg font-semibold">Your target rate is {formattedTargetRate}%</p>
             </div>
-            <div className="w-full">
-              <ModalButton>Track Your Rate to Save</ModalButton>
-            </div>
-          </div>
-        )
-      default:
-        return null
+          )
+        default:
+          return null
+      }
     }
+
+    const handleContinueToContact = () => {
+      const contactInfoIndex = visibleSteps.findIndex(step => step.id === "contact-info")
+      setCurrentStep(contactInfoIndex)
+    }
+
+    return (
+      <div className="text-center space-y-6">
+        <ResultContent />
+        
+        {/* Call to Action Buttons */}
+        <div className="space-y-3">
+          <Button 
+            className="w-full bg-primary hover:bg-primary/90 text-white"
+            onClick={handleContinueToContact}
+          >
+            Track Your Rate Now
+          </Button>
+        </div>
+      </div>
+    )
   }
+
+  const timeSlots = [
+    "9:00 AM", "10:00 AM", "11:00 AM",
+    "1:00 PM", "2:00 PM", "3:00 PM", "4:00 PM"
+  ];
+
+  const handleScheduleSubmit = () => {
+    if (selectedDate && selectedTime) {
+      console.log('Scheduling call:', {
+        date: selectedDate,
+        time: selectedTime,
+        ...getSummaryData(),
+        name,
+        email
+      });
+      // Here you would typically submit this to your backend
+      handleBrokerPreference(true);
+    }
+  };
 
   const renderStepContent = (step: Step) => {
     switch (step.id) {
@@ -481,10 +579,154 @@ export function StepCalculatorTest({ onCalculate }: StepCalculatorTestProps) {
       case "results":
         return getResultsContent()
 
+      case "contact-info":
+        return (
+          <div className="space-y-4">
+            <Input
+              type="text"
+              placeholder="Name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="text-lg text-center"
+              autoFocus
+            />
+            <Input
+              type="email"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="text-lg text-center"
+              autoFocus
+            />
+            <div className="flex justify-between">
+              <Button variant="ghost" onClick={handleBack}>
+                <ArrowLeft className="mr-2 h-4 w-4" /> Back
+              </Button>
+              <Button 
+                onClick={handleContactSubmit}
+                disabled={!name || !email}
+              >
+                Next <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )
+
+      case "schedule-broker":
+        return (
+          <div className="space-y-4">
+            <RadioGroup
+              value={wantsBrokerCall === null ? "" : wantsBrokerCall.toString()}
+              onValueChange={(value) => handleBrokerPreference(value === "true")}
+              className="grid grid-cols-1 gap-4"
+            >
+              <Label className="cursor-pointer">
+                <div className="flex items-center space-x-3 rounded-lg border p-4 hover:bg-gray-50">
+                  <RadioGroupItem value="true" id="true" />
+                  <Calendar className="w-5 h-5 text-primary" />
+                  <div className="flex-1">
+                    <Label htmlFor="true">Yes, schedule a call with me</Label>
+                    <p className="text-sm text-gray-500">Get expert guidance on your mortgage journey.</p>
+                  </div>
+                </div>
+              </Label>
+              <Label className="cursor-pointer">
+                <div className="flex items-center space-x-3 rounded-lg border p-4 hover:bg-gray-50">
+                  <RadioGroupItem value="false" id="false" />
+                  <Mail className="w-5 h-5 text-primary" />
+                  <div className="flex-1">
+                    <Label htmlFor="false">Not right now, email me updates</Label>
+                    <p className="text-sm text-gray-500">Keep me updated about rates via email.</p>
+                  </div>
+                </div>
+              </Label>
+            </RadioGroup>
+            <div className="flex justify-between">
+              <Button variant="ghost" onClick={handleBack}>
+                <ArrowLeft className="mr-2 h-4 w-4" /> Back
+              </Button>
+              <Button 
+                onClick={handleBrokerPreferenceClick}
+                disabled={wantsBrokerCall === null}
+              >
+                {wantsBrokerCall ? 'Schedule Call' : 'Continue'} <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </div>
+            <div className="text-center pt-4 border-t">
+              <Button 
+                variant="link" 
+                className="text-gray-500 text-sm hover:text-gray-700"
+                onClick={() => {
+                  // Handle opt-out logic here
+                  console.log('User opted out of contact');
+                  handleBrokerPreference(false);
+                }}
+              >
+                I've changed my mind - don't contact me
+              </Button>
+            </div>
+          </div>
+        )
+
+      case "calendar":
+        return (
+          <div className="space-y-6">
+            <div className="flex flex-col items-center space-y-4">
+              <CalendarComponent
+                mode="single"
+                selected={selectedDate}
+                onSelect={(date: Date | undefined) => setSelectedDate(date)}
+                className="rounded-md border"
+                disabled={(date: Date) => 
+                  date < new Date() || // Can't select past dates
+                  date.getDay() === 0 || // No Sundays
+                  date.getDay() === 6    // No Saturdays
+                }
+              />
+              
+              {selectedDate && (
+                <div className="w-full space-y-2">
+                  <h4 className="text-sm font-medium text-center">Available Times</h4>
+                  <div className="grid grid-cols-2 gap-2">
+                    {timeSlots.map((time) => (
+                      <Button
+                        key={time}
+                        variant={selectedTime === time ? "default" : "outline"}
+                        className="w-full"
+                        onClick={() => setSelectedTime(time)}
+                      >
+                        {time}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            <div className="flex justify-between">
+              <Button variant="ghost" onClick={handleBack}>
+                <ArrowLeft className="mr-2 h-4 w-4" /> Back
+              </Button>
+              <Button
+                onClick={handleScheduleSubmit}
+                disabled={!selectedDate || !selectedTime}
+              >
+                Schedule Call <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )
+
       default:
         return null
     }
   }
+
+  useEffect(() => {
+    if (onProgressChange) {
+      onProgressChange('initial')
+    }
+  }, [onProgressChange])
 
   return (
     <Card className="p-6">
@@ -494,6 +736,23 @@ export function StepCalculatorTest({ onCalculate }: StepCalculatorTestProps) {
           {currentStepData?.description && (
             <p className="text-gray-500 text-sm">{currentStepData.description}</p>
           )}
+          
+          {/* Step Indicator Dots */}
+          <div className="flex justify-center items-center gap-2 mt-4">
+            {visibleSteps.map((step, index) => (
+              <div
+                key={step.id}
+                className={`w-2 h-2 rounded-full transition-all duration-200 ${
+                  index === currentStep
+                    ? "bg-primary w-4" // Current step is wider and primary color
+                    : index < currentStep
+                    ? "bg-primary/40" // Completed steps are faded primary
+                    : "bg-gray-200" // Future steps are gray
+                }`}
+                title={step.title}
+              />
+            ))}
+          </div>
         </div>
 
         <AnimatePresence mode="wait">
