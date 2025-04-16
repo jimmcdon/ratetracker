@@ -21,10 +21,11 @@ interface StepCalculatorTestProps {
   onProgressChange?: (stage: 'initial' | 'details' | 'complete') => void
 }
 
-type Step = {
+interface Step {
   id: string
   title: string
   description?: string
+  icon?: React.ComponentType<any>
   showFor?: LoanGoal[]
 }
 
@@ -32,12 +33,15 @@ const steps: Step[] = [
   {
     id: "goal",
     title: "What's Your Goal?",
-    description: "Let us help you achieve your mortgage goals."
+    description: "Let us help you achieve your mortgage goals.",
+    icon: Home
   },
   {
     id: "property-value",
     title: "What is your property value?",
-    description: "Enter the estimated value of your home."
+    description: "Enter the estimated value of your home.",
+    icon: Home,
+    showFor: ['purchase', 'refinance']
   },
   {
     id: "loan-amount",
@@ -98,6 +102,11 @@ const steps: Step[] = [
     id: "calendar",
     title: "Schedule Your Call",
     description: "Choose a time that works best for you."
+  },
+  {
+    id: "success",
+    title: "All Set!",
+    description: "We've got everything we need."
   }
 ]
 
@@ -118,6 +127,7 @@ export function StepCalculatorTest({ onCalculate, onProgressChange }: StepCalcul
   const [wantsBrokerCall, setWantsBrokerCall] = useState<boolean | null>(null)
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined)
   const [selectedTime, setSelectedTime] = useState<string | undefined>(undefined)
+  const [hasRealtor, setHasRealtor] = useState<boolean | null>(null)
 
   const getVisibleSteps = () => {
     if (!loanGoal) return steps.filter(step => step.id === "goal")
@@ -272,12 +282,17 @@ export function StepCalculatorTest({ onCalculate, onProgressChange }: StepCalcul
         throw new Error(error.details || 'Failed to submit contact info');
       }
 
-      // Move to broker preference step
-      const nextStepIndex = visibleSteps.findIndex(step => step.id === "schedule-broker");
-      setCurrentStep(nextStepIndex);
+      if (!wantsBrokerCall) {
+        // If they don't want a call, go straight to success
+        const successStepIndex = visibleSteps.findIndex(step => step.id === "success");
+        setCurrentStep(successStepIndex);
+      } else {
+        // If they want a call, continue to broker schedule
+        const nextStepIndex = visibleSteps.findIndex(step => step.id === "schedule-broker");
+        setCurrentStep(nextStepIndex);
+      }
     } catch (error) {
       console.error('Error submitting contact info:', error);
-      // You might want to show an error toast here
     }
   };
 
@@ -322,11 +337,21 @@ export function StepCalculatorTest({ onCalculate, onProgressChange }: StepCalcul
     const ResultContent = () => {
       switch (loanGoal) {
         case 'cashout':
+          const targetRatePayment = calculateMonthlyPayment({
+            principal: newLoanAmount,
+            rate: targetRate,
+            years: parseFloat(loanTerm)
+          })
           return (
             <div className="space-y-2">
-              <p className="text-lg">For {formatCurrency(parseFloat(cashAmount))} cash out</p>
-              <p className="text-lg">with a new loan amount of {formatCurrency(newLoanAmount)}</p>
-              <p className="text-lg font-semibold">Your target rate is {formattedTargetRate}%</p>
+              <p className="text-4xl font-bold text-primary mb-6">
+                ${parseInt(cashAmount).toLocaleString()}
+              </p>
+              <p className="text-xl mb-4">Cash Available Today</p>
+              <div className="text-gray-600 space-y-1 mb-6">
+                <p>New loan amount: {formatCurrency(newLoanAmount)}</p>
+                <p>Monthly payment: {formatCurrency(targetRatePayment)}</p>
+              </div>
             </div>
           )
         case 'purchase':
@@ -365,7 +390,7 @@ export function StepCalculatorTest({ onCalculate, onProgressChange }: StepCalcul
             className="w-full bg-primary hover:bg-primary/90 text-white"
             onClick={handleContinueToContact}
           >
-            Track Your Rate Now
+            {loanGoal === 'cashout' ? 'Get Your Cash Today' : 'Track Your Rate Now'}
           </Button>
         </div>
       </div>
@@ -408,15 +433,52 @@ export function StepCalculatorTest({ onCalculate, onProgressChange }: StepCalcul
           throw new Error(error.details || 'Failed to schedule call');
         }
 
-        // Handle successful scheduling
-        handleBrokerPreference(true);
-        // You might want to show a success message or redirect
+        // Move to success step
+        const successStepIndex = visibleSteps.findIndex(step => step.id === "success");
+        setCurrentStep(successStepIndex);
       } catch (error) {
         console.error('Error scheduling call:', error);
-        // You might want to show an error toast here
       }
     }
   };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      const currentStepData = visibleSteps[currentStep]
+      
+      switch (currentStepData.id) {
+        case "property-value":
+          if (propertyValue && parseFloat(propertyValue) > 0) handleNext()
+          break
+        case "loan-amount":
+          if (loanAmount && parseFloat(loanAmount) > 0) handleNext()
+          break
+        case "cash-amount":
+          if (cashAmount && parseFloat(cashAmount) > 0) handleNext()
+          break
+        case "down-payment":
+          if (downPayment && parseFloat(downPayment) > 0) handleNext()
+          break
+        case "current-rate":
+          if (currentRate && parseFloat(currentRate) > 0) handleNext()
+          break
+        case "market-rate":
+          if (marketRate && parseFloat(marketRate) > 0) handleNext()
+          break
+        case "loan-term":
+          if (loanTerm && parseFloat(loanTerm) > 0) handleNext()
+          break
+        case "target-payment":
+          if (targetPayment && parseFloat(targetPayment) > 0) handleCalculate()
+          break
+        case "contact-info":
+          if (name && email && (loanGoal !== 'purchase' || hasRealtor !== null)) {
+            handleContactSubmit()
+          }
+          break
+      }
+    }
+  }
 
   const renderStepContent = (step: Step) => {
     switch (step.id) {
@@ -493,6 +555,7 @@ export function StepCalculatorTest({ onCalculate, onProgressChange }: StepCalcul
                   else if (step.id === "cash-amount") setCashAmount(value)
                   else setDownPayment(value)
                 }}
+                onKeyPress={handleKeyPress}
                 className="pl-8 text-lg text-center"
                 autoFocus
               />
@@ -525,6 +588,7 @@ export function StepCalculatorTest({ onCalculate, onProgressChange }: StepCalcul
                 placeholder="5.5"
                 value={currentRate.replace('%', '')}
                 onChange={(e) => setCurrentRate(formatInput(e.target.value, true))}
+                onKeyPress={handleKeyPress}
                 className="text-lg text-center pr-8"
                 autoFocus
               />
@@ -553,6 +617,7 @@ export function StepCalculatorTest({ onCalculate, onProgressChange }: StepCalcul
                 placeholder="6.5"
                 value={marketRate.replace('%', '')}
                 onChange={(e) => setMarketRate(formatInput(e.target.value, true))}
+                onKeyPress={handleKeyPress}
                 className="text-lg text-center pr-8"
                 autoFocus
               />
@@ -581,6 +646,7 @@ export function StepCalculatorTest({ onCalculate, onProgressChange }: StepCalcul
                 placeholder="30"
                 value={loanTerm}
                 onChange={(e) => setLoanTerm(formatInput(e.target.value))}
+                onKeyPress={handleKeyPress}
                 className="text-lg text-center pr-14"
                 autoFocus
               />
@@ -610,6 +676,7 @@ export function StepCalculatorTest({ onCalculate, onProgressChange }: StepCalcul
                 placeholder="0.00"
                 value={targetPayment}
                 onChange={(e) => setTargetPayment(formatInput(e.target.value))}
+                onKeyPress={handleKeyPress}
                 className="pl-8 text-lg text-center"
                 autoFocus
               />
@@ -639,6 +706,7 @@ export function StepCalculatorTest({ onCalculate, onProgressChange }: StepCalcul
               placeholder="Name"
               value={name}
               onChange={(e) => setName(e.target.value)}
+              onKeyPress={handleKeyPress}
               className="text-lg text-center"
               autoFocus
             />
@@ -647,16 +715,55 @@ export function StepCalculatorTest({ onCalculate, onProgressChange }: StepCalcul
               placeholder="Email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              onKeyPress={handleKeyPress}
               className="text-lg text-center"
-              autoFocus
             />
+            {loanGoal === 'purchase' && (
+              <div className="space-y-2">
+                <p className="text-sm text-center text-gray-500">Are you working with a realtor?</p>
+                <RadioGroup
+                  defaultValue={hasRealtor === null ? undefined : hasRealtor ? "yes" : "no"}
+                  onValueChange={(value) => setHasRealtor(value === "yes")}
+                  className="grid grid-cols-2 gap-4"
+                >
+                  <div>
+                    <RadioGroupItem
+                      value="yes"
+                      id="realtor-yes"
+                      className="peer sr-only"
+                    />
+                    <Label
+                      htmlFor="realtor-yes"
+                      className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
+                    >
+                      <span className="mb-2">Yes</span>
+                      <User className="h-6 w-6" />
+                    </Label>
+                  </div>
+                  <div>
+                    <RadioGroupItem
+                      value="no"
+                      id="realtor-no"
+                      className="peer sr-only"
+                    />
+                    <Label
+                      htmlFor="realtor-no"
+                      className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
+                    >
+                      <span className="mb-2">No</span>
+                      <User className="h-6 w-6" />
+                    </Label>
+                  </div>
+                </RadioGroup>
+              </div>
+            )}
             <div className="flex justify-between">
               <Button variant="ghost" onClick={handleBack}>
                 <ArrowLeft className="mr-2 h-4 w-4" /> Back
               </Button>
               <Button 
                 onClick={handleContactSubmit}
-                disabled={!name || !email}
+                disabled={!name || !email || (loanGoal === 'purchase' && hasRealtor === null)}
               >
                 Next <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
@@ -766,6 +873,56 @@ export function StepCalculatorTest({ onCalculate, onProgressChange }: StepCalcul
                 Schedule Call <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </div>
+          </div>
+        )
+
+      case "success":
+        return (
+          <div className="space-y-6 text-center">
+            <div className="p-4">
+              {wantsBrokerCall ? (
+                <>
+                  <h3 className="text-xl font-semibold mb-2">Your Call is Scheduled!</h3>
+                  <p className="text-gray-600 mb-4">
+                    We'll see you on {selectedDate?.toLocaleDateString()} at {selectedTime}.
+                  </p>
+                  <p className="text-gray-600">
+                    In the meantime, we'll keep tracking rates and notify you when they match your goals.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <h3 className="text-xl font-semibold mb-2">We're On It!</h3>
+                  <p className="text-gray-600">
+                    We'll keep tracking rates and notify you as soon as they match your goals.
+                  </p>
+                </>
+              )}
+            </div>
+            <Button 
+              className="w-full bg-primary hover:bg-primary/90 text-white"
+              onClick={() => {
+                // Reset the calculator
+                setCurrentStep(0)
+                setLoanGoal(null)
+                setPropertyValue("")
+                setLoanAmount("")
+                setCashAmount("")
+                setCurrentRate("")
+                setMarketRate("")
+                setDownPayment("")
+                setLoanTerm("")
+                setTargetPayment("")
+                setName("")
+                setEmail("")
+                setWantsBrokerCall(null)
+                setSelectedDate(undefined)
+                setSelectedTime(undefined)
+                setHasRealtor(null)
+              }}
+            >
+              Start New Calculation
+            </Button>
           </div>
         )
 

@@ -76,24 +76,39 @@ export async function POST(req: Request) {
     const brokerEmailResponse = await resend.emails.send({
       from: FROM_EMAIL,
       to: [brokerEmail],
-      subject: 'New Client Call Scheduled',
+      subject: 'New Client Call Scheduled 📞',
       html: `
-        <div style="font-family: Arial, sans-serif; padding: 20px;">
-          <h2 style="color: #333;">New Client Call Scheduled</h2>
+        <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: 0 auto; background-color: #ffffff;">
+          <h2 style="color: #333; margin-bottom: 20px;">New Client Call Scheduled 📞</h2>
           
           <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <h3 style="color: #444;">Client Details:</h3>
+            <h3 style="color: #444; margin-bottom: 15px;">Appointment Details:</h3>
             <ul style="list-style: none; padding: 0;">
-              <li style="margin: 10px 0;">Name: ${name}</li>
-              <li style="margin: 10px 0;">Email: ${email}</li>
-              <li style="margin: 10px 0;">Date: ${formattedDate}</li>
-              <li style="margin: 10px 0;">Time: ${time}</li>
+              <li style="margin: 10px 0;">📅 Date: ${formattedDate}</li>
+              <li style="margin: 10px 0;">⏰ Time: ${time}</li>
+              <li style="margin: 10px 0;">👤 Client Name: ${name}</li>
+              <li style="margin: 10px 0;">📧 Client Email: ${email}</li>
             </ul>
           </div>
 
           <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <h3 style="color: #444;">Calculator Data:</h3>
-            <pre style="background: #fff; padding: 15px; border-radius: 4px;">${JSON.stringify(calculatorData, null, 2)}</pre>
+            <h3 style="color: #444; margin-bottom: 15px;">Loan Details:</h3>
+            <ul style="list-style: none; padding: 0;">
+              <li style="margin: 10px 0;">🏠 Loan Type: ${calculatorData.loanType}</li>
+              <li style="margin: 10px 0;">💰 Property Value: ${calculatorData.propertyValue}</li>
+              ${calculatorData.downPayment ? `<li style="margin: 10px 0;">💵 Down Payment: ${calculatorData.downPayment}</li>` : ''}
+              ${calculatorData.loanAmount ? `<li style="margin: 10px 0;">💵 Current Loan: ${calculatorData.loanAmount}</li>` : ''}
+              ${calculatorData.cashAmount ? `<li style="margin: 10px 0;">💵 Cash Out: ${calculatorData.cashAmount}</li>` : ''}
+              <li style="margin: 10px 0;">🎯 Target Rate: ${calculatorData.targetRate}</li>
+              <li style="margin: 10px 0;">💵 Target Payment: ${calculatorData.targetPayment}</li>
+              <li style="margin: 10px 0;">⏱️ Loan Term: ${calculatorData.loanTerm}</li>
+              ${calculatorData.currentRate ? `<li style="margin: 10px 0;">📊 Current Rate: ${calculatorData.currentRate}</li>` : ''}
+              ${calculatorData.marketRate ? `<li style="margin: 10px 0;">📈 Market Rate: ${calculatorData.marketRate}</li>` : ''}
+            </ul>
+          </div>
+
+          <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; font-size: 12px; color: #666;">
+            <p>This is an automated notification from RateTracker.</p>
           </div>
         </div>
       `
