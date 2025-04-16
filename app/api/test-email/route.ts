@@ -3,12 +3,13 @@ import { Resend } from 'resend';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-// Using Resend's test email address for all environments until domain is verified
-const FROM_EMAIL = 'Rate Tracker <delivered@resend.dev>';
+// Using verified domain email address
+const FROM_EMAIL = process.env.NODE_ENV === 'production' 
+  ? 'Rate Tracker <info@ratetracker.us>'
+  : 'Rate Tracker <onboarding@resend.dev>';
 
 export async function POST(req: Request) {
   try {
-    // Parse request body
     const { to } = await req.json();
     
     if (!to) {
@@ -18,16 +19,19 @@ export async function POST(req: Request) {
       );
     }
 
+    // Use production email in production, test email in development
+    const recipientEmail = process.env.NODE_ENV === 'production' ? to : 'delivered@resend.dev';
+
     console.log('Sending email with Resend:', {
       from: FROM_EMAIL,
-      to: [to],
+      to: [recipientEmail],
       subject: 'Test Email from Rate Tracker'
     });
 
     // Send email
     const response = await resend.emails.send({
       from: FROM_EMAIL,
-      to: [to],
+      to: [recipientEmail],
       subject: 'Test Email from Rate Tracker',
       html: `
         <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: 0 auto;">
@@ -35,7 +39,7 @@ export async function POST(req: Request) {
           <p>This is a test email sent to verify our email configuration.</p>
           <p>Details:</p>
           <ul>
-            <li>Sent to: ${to}</li>
+            <li>Sent to: ${recipientEmail}</li>
             <li>Time: ${new Date().toLocaleString()}</li>
             <li>Environment: ${process.env.NODE_ENV}</li>
           </ul>

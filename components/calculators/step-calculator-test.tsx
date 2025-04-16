@@ -250,11 +250,36 @@ export function StepCalculatorTest({ onCalculate, onProgressChange }: StepCalcul
     }
   }
 
-  const handleContactSubmit = () => {
-    console.log('Submitting contact info:', { name, email, ...getSummaryData() })
-    const nextStepIndex = visibleSteps.findIndex(step => step.id === "schedule-broker")
-    setCurrentStep(nextStepIndex)
-  }
+  const handleContactSubmit = async () => {
+    try {
+      const summaryData = getSummaryData();
+      console.log('Submitting contact info:', { name, email, ...summaryData });
+
+      const response = await fetch('/api/calculator/submit', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name,
+          email,
+          calculatorData: summaryData
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.details || 'Failed to submit contact info');
+      }
+
+      // Move to broker preference step
+      const nextStepIndex = visibleSteps.findIndex(step => step.id === "schedule-broker");
+      setCurrentStep(nextStepIndex);
+    } catch (error) {
+      console.error('Error submitting contact info:', error);
+      // You might want to show an error toast here
+    }
+  };
 
   const handleBrokerPreference = (wantsBroker: boolean) => {
     setWantsBrokerCall(wantsBroker)
@@ -352,17 +377,44 @@ export function StepCalculatorTest({ onCalculate, onProgressChange }: StepCalcul
     "1:00 PM", "2:00 PM", "3:00 PM", "4:00 PM"
   ];
 
-  const handleScheduleSubmit = () => {
+  const handleScheduleSubmit = async () => {
     if (selectedDate && selectedTime) {
-      console.log('Scheduling call:', {
-        date: selectedDate,
-        time: selectedTime,
-        ...getSummaryData(),
-        name,
-        email
-      });
-      // Here you would typically submit this to your backend
-      handleBrokerPreference(true);
+      try {
+        const summaryData = getSummaryData();
+        console.log('Scheduling call:', {
+          date: selectedDate,
+          time: selectedTime,
+          ...summaryData,
+          name,
+          email
+        });
+
+        const response = await fetch('/api/calculator/schedule', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            name,
+            email,
+            date: selectedDate,
+            time: selectedTime,
+            calculatorData: summaryData
+          }),
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.details || 'Failed to schedule call');
+        }
+
+        // Handle successful scheduling
+        handleBrokerPreference(true);
+        // You might want to show a success message or redirect
+      } catch (error) {
+        console.error('Error scheduling call:', error);
+        // You might want to show an error toast here
+      }
     }
   };
 

@@ -133,10 +133,7 @@ export default function TestEmailPage() {
           </div>
 
           <Button
-            onClick={() => {
-              console.log('Button clicked, current email:', email);
-              sendTestEmail();
-            }}
+            onClick={sendTestEmail}
             disabled={status === 'loading'}
             className="w-full"
           >
