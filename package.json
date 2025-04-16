@@ -55,6 +55,8 @@
     "lucide-react": "^0.454.0",
     "next": "15.1.0",
     "next-themes": "latest",
+    "posthog-js": "^1.236.1",
+    "posthog-node": "^4.11.7",
     "react": "^18.2.0",
     "react-chartjs-2": "latest",
     "react-day-picker": "8.10.1",

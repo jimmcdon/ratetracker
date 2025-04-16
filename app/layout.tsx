@@ -10,6 +10,7 @@ import { CalculatorProvider } from "@/contexts/calculator-context"
 import { ButtonHoverProvider } from "@/contexts/ButtonHoverContext"
 import { Toaster } from "@/components/ui/toaster"
 import { metadata as pageMetadata } from "./metadata"
+import { PostHogProvider } from "@/components/PostHogProvider"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -34,22 +35,24 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.className} min-h-screen bg-background flex flex-col relative`} suppressHydrationWarning>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="light"
-          enableSystem={false}
-          disableTransitionOnChange
-          storageKey="ratetracker-theme"
-        >
-          <ButtonHoverProvider>
-            <CalculatorProvider>
-              <MainNav />
-              <main className="flex-grow pt-20 bg-white">{children}</main>
-              <Footer />
-              <Toaster />
-            </CalculatorProvider>
-          </ButtonHoverProvider>
-        </ThemeProvider>
+        <PostHogProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="light"
+            enableSystem={false}
+            disableTransitionOnChange
+            storageKey="ratetracker-theme"
+          >
+            <ButtonHoverProvider>
+              <CalculatorProvider>
+                <MainNav />
+                <main className="flex-grow pt-20 bg-white">{children}</main>
+                <Footer />
+                <Toaster />
+              </CalculatorProvider>
+            </ButtonHoverProvider>
+          </ThemeProvider>
+        </PostHogProvider>
       </body>
     </html>
   )
