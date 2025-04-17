@@ -13,6 +13,7 @@ import ModalButton from '@/components/modal-button'
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
 import { Calendar as CalendarComponent } from "@/components/ui/calendar"
+import { usePostHog } from 'posthog-js/react'
 
 type LoanGoal = 'purchase' | 'refinance' | 'cashout'
 
@@ -111,6 +112,7 @@ const steps: Step[] = [
 ]
 
 export function StepCalculatorTest({ onCalculate, onProgressChange }: StepCalculatorTestProps) {
+  const posthog = usePostHog()
   const { setMonthlySavings, setYearlySavings } = useCalculatorContext()
   const [currentStep, setCurrentStep] = useState(0)
   const [loanGoal, setLoanGoal] = useState<LoanGoal | null>(null)
@@ -227,9 +229,20 @@ export function StepCalculatorTest({ onCalculate, onProgressChange }: StepCalcul
   const handleCalculate = () => {
     const currentPayment = getCurrentPayment()
     const monthlySavings = currentPayment - parseFloat(targetPayment)
+    const targetRate = calculateTargetRate()
     
     setMonthlySavings(monthlySavings)
     setYearlySavings(monthlySavings * 12)
+    
+    // Track calculation completion
+    posthog.capture('calculator_completed', {
+      loan_goal: loanGoal,
+      property_value: parseFloat(propertyValue),
+      loan_amount: parseFloat(loanAmount),
+      monthly_savings: monthlySavings,
+      yearly_savings: monthlySavings * 12,
+      target_rate: targetRate
+    })
     
     if (onCalculate) {
       onCalculate(monthlySavings)
@@ -262,9 +275,6 @@ export function StepCalculatorTest({ onCalculate, onProgressChange }: StepCalcul
 
   const handleContactSubmit = async () => {
     try {
-      const summaryData = getSummaryData();
-      console.log('Submitting contact info:', { name, email, ...summaryData });
-
       const response = await fetch('/api/calculator/submit', {
         method: 'POST',
         headers: {
@@ -273,28 +283,22 @@ export function StepCalculatorTest({ onCalculate, onProgressChange }: StepCalcul
         body: JSON.stringify({
           name,
           email,
-          calculatorData: summaryData
-        }),
-      });
+          ...getSummaryData()
+        })
+      })
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.details || 'Failed to submit contact info');
-      }
-
-      if (!wantsBrokerCall) {
-        // If they don't want a call, go straight to success
-        const successStepIndex = visibleSteps.findIndex(step => step.id === "success");
-        setCurrentStep(successStepIndex);
-      } else {
-        // If they want a call, continue to broker schedule
-        const nextStepIndex = visibleSteps.findIndex(step => step.id === "schedule-broker");
-        setCurrentStep(nextStepIndex);
+      if (response.ok) {
+        // Track contact info submission
+        posthog.capture('contact_info_submitted', {
+          loan_goal: loanGoal
+        })
+        
+        handleNext()
       }
     } catch (error) {
-      console.error('Error submitting contact info:', error);
+      console.error('Error submitting contact info:', error)
     }
-  };
+  }
 
   const handleBrokerPreference = (wantsBroker: boolean) => {
     setWantsBrokerCall(wantsBroker)
@@ -403,44 +407,37 @@ export function StepCalculatorTest({ onCalculate, onProgressChange }: StepCalcul
   ];
 
   const handleScheduleSubmit = async () => {
-    if (selectedDate && selectedTime) {
-      try {
-        const summaryData = getSummaryData();
-        console.log('Scheduling call:', {
+    if (!selectedDate || !selectedTime) return
+
+    try {
+      const response = await fetch('/api/calculator/schedule', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name,
+          email,
           date: selectedDate,
           time: selectedTime,
-          ...summaryData,
-          name,
-          email
-        });
+          ...getSummaryData()
+        })
+      })
 
-        const response = await fetch('/api/calculator/schedule', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            name,
-            email,
-            date: selectedDate,
-            time: selectedTime,
-            calculatorData: summaryData
-          }),
-        });
-
-        if (!response.ok) {
-          const error = await response.json();
-          throw new Error(error.details || 'Failed to schedule call');
-        }
-
-        // Move to success step
-        const successStepIndex = visibleSteps.findIndex(step => step.id === "success");
-        setCurrentStep(successStepIndex);
-      } catch (error) {
-        console.error('Error scheduling call:', error);
+      if (response.ok) {
+        // Track broker call scheduling
+        posthog.capture('broker_call_scheduled', {
+          loan_goal: loanGoal,
+          scheduled_date: selectedDate,
+          scheduled_time: selectedTime
+        })
+        
+        handleNext()
       }
+    } catch (error) {
+      console.error('Error scheduling call:', error)
     }
-  };
+  }
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
