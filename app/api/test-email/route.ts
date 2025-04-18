@@ -1,12 +1,13 @@
 import { NextResponse } from 'next/server';
 import { Resend } from 'resend';
+import { BaseEmailTemplate } from '@/components/emails/BaseEmailTemplate';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 // Using verified domain email address
 const FROM_EMAIL = process.env.NODE_ENV === 'production' 
   ? 'Rate Tracker <info@ratetracker.us>'
-  : 'Rate Tracker <onboarding@resend.dev>';
+  : 'Rate Tracker <info@ratetracker.us>'; // Using production email for testing
 
 export async function POST(req: Request) {
   try {
@@ -19,8 +20,8 @@ export async function POST(req: Request) {
       );
     }
 
-    // Use production email in production, test email in development
-    const recipientEmail = process.env.NODE_ENV === 'production' ? to : 'delivered@resend.dev';
+    // Temporarily bypass development check for testing
+    const recipientEmail = to;
 
     console.log('Sending email with Resend:', {
       from: FROM_EMAIL,
@@ -28,24 +29,33 @@ export async function POST(req: Request) {
       subject: 'Test Email from Rate Tracker'
     });
 
+    // Create email content using BaseEmailTemplate
+    const htmlContent = BaseEmailTemplate({
+      previewText: "Test Email from Rate Tracker",
+      heading: "Test Email from Rate Tracker",
+      bodyContent: `
+        <p>This is a test email sent to verify our email configuration.</p>
+        
+        <div style="background-color: #f5f8ff; padding: 20px; border-radius: 6px; margin: 20px 0;">
+          <h3 style="margin-top: 0; color: #0069ff;">Email Details:</h3>
+          <ul style="margin-bottom: 0; padding-left: 20px;">
+            <li><strong>Sent to:</strong> ${recipientEmail}</li>
+            <li><strong>Time:</strong> ${new Date().toLocaleString()}</li>
+            <li><strong>Environment:</strong> ${process.env.NODE_ENV}</li>
+          </ul>
+        </div>
+        
+        <p>If you received this email, our email system is working correctly! 🎉</p>
+      `,
+      footerText: "© Rate Tracker. This is a test email."
+    });
+
     // Send email
     const response = await resend.emails.send({
       from: FROM_EMAIL,
       to: [recipientEmail],
       subject: 'Test Email from Rate Tracker',
-      html: `
-        <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #333;">Test Email from Rate Tracker</h2>
-          <p>This is a test email sent to verify our email configuration.</p>
-          <p>Details:</p>
-          <ul>
-            <li>Sent to: ${recipientEmail}</li>
-            <li>Time: ${new Date().toLocaleString()}</li>
-            <li>Environment: ${process.env.NODE_ENV}</li>
-          </ul>
-          <p>If you received this email, our email system is working correctly! 🎉</p>
-        </div>
-      `,
+      html: htmlContent,
       text: 'This is a test email from Rate Tracker. If you received this, our email system is working correctly!',
     });
 

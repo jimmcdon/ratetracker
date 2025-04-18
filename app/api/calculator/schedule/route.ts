@@ -1,133 +1,155 @@
 import { NextResponse } from 'next/server';
 import { Resend } from 'resend';
-
-const resend = new Resend(process.env.RESEND_API_KEY);
+import { BaseEmailTemplate } from '@/components/emails/BaseEmailTemplate';
 
 // Using verified domain email address
 const FROM_EMAIL = process.env.NODE_ENV === 'production' 
   ? 'Rate Tracker <info@ratetracker.us>'
-  : 'Rate Tracker <onboarding@resend.dev>';
-const TEST_EMAIL = 'delivered@resend.dev';  // Resend's test recipient email
+  : 'Rate Tracker <info@ratetracker.us>'; // Using production email for testing
+
+const TEST_EMAIL = 'delivered@resend.dev';
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(req: Request) {
   try {
-    const { name, email, date, time, calculatorData } = await req.json();
+    // Get request data
+    const { name, email, date, time } = await req.json();
 
-    // Use production email in production, test email in development
-    const recipientEmail = process.env.NODE_ENV === 'production' ? email : TEST_EMAIL;
-    const brokerEmail = process.env.NODE_ENV === 'production' ? 
-      (process.env.BROKER_EMAIL || 'broker@ratetracker.us') : 
-      TEST_EMAIL;
-
-    console.log('Processing broker call scheduling:', {
-      name,
-      email: recipientEmail,
-      date,
-      time,
-      calculatorData
-    });
+    // Validate required data
+    if (!name || !email || !date || !time) {
+      return NextResponse.json(
+        { error: 'Name, email, date, and time are required' },
+        { status: 400 }
+      );
+    }
 
     // Format date for display
     const formattedDate = new Date(date).toLocaleDateString('en-US', {
       weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
+      month: 'long', 
+      day: 'numeric',
+      year: 'numeric'
+    });
+    
+    // Use production email in production, test email in development
+    const recipientEmail = process.env.NODE_ENV === 'production' ? email : TEST_EMAIL;
+    const adminEmail = process.env.NODE_ENV === 'production' ? 
+      (process.env.NEXT_PUBLIC_ADMIN_EMAIL || 'newlead@ratetracker.us') : 
+      TEST_EMAIL;
+    const brokerEmail = process.env.NODE_ENV === 'production' ?
+      (process.env.NEXT_PUBLIC_BROKER_EMAIL || 'broker@ratetracker.us') :
+      TEST_EMAIL;
+
+    console.log('Processing call scheduling:', {
+      name,
+      email: recipientEmail,
+      date: formattedDate,
+      time
+    });
+
+    // Create user email content
+    const userEmailHtml = BaseEmailTemplate({
+      previewText: `Your call with Rate Tracker is scheduled for ${formattedDate} at ${time}`,
+      heading: `Your Call is Confirmed, ${name}! 👋`,
+      bodyContent: `
+        <div style="background-color: #f5f8ff; padding: 20px; border-radius: 8px; margin: 20px 0;">
+          <h3 style="margin-top: 0; color: #0069ff;">Call Details:</h3>
+          <ul style="list-style: none; padding: 0;">
+            <li style="margin: 10px 0;">📅 Date: ${formattedDate}</li>
+            <li style="margin: 10px 0;">⏰ Time: ${time}</li>
+            <li style="margin: 10px 0;">📞 Call Type: Phone Call</li>
+          </ul>
+          <p style="margin-top: 15px;">One of our mortgage experts will call you at the scheduled time. Please make sure you're available.</p>
+        </div>
+
+        <p style="color: #666; font-size: 14px; margin-top: 20px;">
+          In the meantime, we're tracking rates based on your goals and will notify you of any opportunities.
+        </p>
+      `,
+      footerText: "Need to reschedule? Reply to this email or call us at (555) 123-4567."
+    });
+
+    // Create broker email content
+    const brokerEmailHtml = BaseEmailTemplate({
+      previewText: `New call scheduled with ${name} on ${formattedDate} at ${time}`,
+      heading: "New Call Scheduled 📅",
+      bodyContent: `
+        <div style="background-color: #f5f8ff; padding: 20px; border-radius: 8px; margin: 20px 0;">
+          <h3 style="margin-top: 0; color: #0069ff;">Call Details:</h3>
+          <ul style="list-style: none; padding: 0;">
+            <li style="margin: 10px 0;">👤 Name: ${name}</li>
+            <li style="margin: 10px 0;">📧 Email: ${email}</li>
+            <li style="margin: 10px 0;">📅 Date: ${formattedDate}</li>
+            <li style="margin: 10px 0;">⏰ Time: ${time}</li>
+          </ul>
+        </div>
+
+        <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+          <h3 style="color: #444; margin-bottom: 15px;">Mortgage Details:</h3>
+          <p>See the customer portal for full details of their mortgage calculation.</p>
+        </div>
+      `,
+      footerText: "This is an automated notification from RateTracker."
+    });
+
+    // Create admin email content
+    const adminEmailHtml = BaseEmailTemplate({
+      previewText: `New call scheduled with ${name} on ${formattedDate} at ${time}`,
+      heading: "Call Scheduled: New Lead Follow-up",
+      bodyContent: `
+        <div style="background-color: #f5f8ff; padding: 20px; border-radius: 8px; margin: 20px 0;">
+          <p>A broker call has been scheduled with:</p>
+          <ul style="list-style: none; padding: 0;">
+            <li style="margin: 10px 0;">👤 Name: ${name}</li>
+            <li style="margin: 10px 0;">📧 Email: ${email}</li>
+            <li style="margin: 10px 0;">📅 Date: ${formattedDate}</li>
+            <li style="margin: 10px 0;">⏰ Time: ${time}</li>
+          </ul>
+        </div>
+      `,
+      footerText: "This is an automated notification from RateTracker."
     });
 
     // Send confirmation to user
     const userEmailResponse = await resend.emails.send({
       from: FROM_EMAIL,
       to: [recipientEmail],
-      subject: 'Your Broker Call is Scheduled! 📞',
-      html: `
-        <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: 0 auto; background-color: #ffffff;">
-          <h2 style="color: #333; margin-bottom: 20px;">Your Call is Scheduled, ${name}! 🗓️</h2>
-          
-          <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <h3 style="color: #444; margin-bottom: 15px;">Call Details:</h3>
-            <ul style="list-style: none; padding: 0;">
-              <li style="margin: 10px 0;">📅 Date: ${formattedDate}</li>
-              <li style="margin: 10px 0;">⏰ Time: ${time}</li>
-            </ul>
-          </div>
-
-          <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <h3 style="color: #444; margin-bottom: 15px;">What to Expect:</h3>
-            <ul style="list-style: none; padding: 0;">
-              <li style="margin: 10px 0;">✓ A mortgage expert will call you at the scheduled time</li>
-              <li style="margin: 10px 0;">✓ The call typically lasts 15-30 minutes</li>
-              <li style="margin: 10px 0;">✓ They'll discuss your rate goals and options</li>
-            </ul>
-          </div>
-
-          <p style="color: #666; font-size: 14px; margin-top: 20px;">
-            Need to reschedule? Reply to this email or call us at (555) 123-4567.
-          </p>
-          
-          <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; font-size: 12px; color: #666;">
-            <p>This is an automated message from RateTracker.</p>
-          </div>
-        </div>
-      `
+      subject: 'Your Call with Rate Tracker is Scheduled! 📅',
+      html: userEmailHtml
     });
 
     // Send notification to broker
     const brokerEmailResponse = await resend.emails.send({
       from: FROM_EMAIL,
       to: [brokerEmail],
-      subject: 'New Client Call Scheduled 📞',
-      html: `
-        <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: 0 auto; background-color: #ffffff;">
-          <h2 style="color: #333; margin-bottom: 20px;">New Client Call Scheduled 📞</h2>
-          
-          <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <h3 style="color: #444; margin-bottom: 15px;">Appointment Details:</h3>
-            <ul style="list-style: none; padding: 0;">
-              <li style="margin: 10px 0;">📅 Date: ${formattedDate}</li>
-              <li style="margin: 10px 0;">⏰ Time: ${time}</li>
-              <li style="margin: 10px 0;">👤 Client Name: ${name}</li>
-              <li style="margin: 10px 0;">📧 Client Email: ${email}</li>
-            </ul>
-          </div>
+      subject: 'New Call Scheduled 📅',
+      html: brokerEmailHtml
+    });
 
-          <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <h3 style="color: #444; margin-bottom: 15px;">Loan Details:</h3>
-            <ul style="list-style: none; padding: 0;">
-              <li style="margin: 10px 0;">🏠 Loan Type: ${calculatorData.loanType}</li>
-              <li style="margin: 10px 0;">💰 Property Value: ${calculatorData.propertyValue}</li>
-              ${calculatorData.downPayment ? `<li style="margin: 10px 0;">💵 Down Payment: ${calculatorData.downPayment}</li>` : ''}
-              ${calculatorData.loanAmount ? `<li style="margin: 10px 0;">💵 Current Loan: ${calculatorData.loanAmount}</li>` : ''}
-              ${calculatorData.cashAmount ? `<li style="margin: 10px 0;">💵 Cash Out: ${calculatorData.cashAmount}</li>` : ''}
-              <li style="margin: 10px 0;">🎯 Target Rate: ${calculatorData.targetRate}</li>
-              <li style="margin: 10px 0;">💵 Target Payment: ${calculatorData.targetPayment}</li>
-              <li style="margin: 10px 0;">⏱️ Loan Term: ${calculatorData.loanTerm}</li>
-              ${calculatorData.currentRate ? `<li style="margin: 10px 0;">📊 Current Rate: ${calculatorData.currentRate}</li>` : ''}
-              ${calculatorData.marketRate ? `<li style="margin: 10px 0;">📈 Market Rate: ${calculatorData.marketRate}</li>` : ''}
-            </ul>
-          </div>
-
-          <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; font-size: 12px; color: #666;">
-            <p>This is an automated notification from RateTracker.</p>
-          </div>
-        </div>
-      `
+    // Also send to admin
+    const adminEmailResponse = await resend.emails.send({
+      from: FROM_EMAIL,
+      to: [adminEmail],
+      subject: 'Call Scheduled: New Lead Follow-up',
+      html: adminEmailHtml
     });
 
     console.log('Email sending results:', {
       userEmail: userEmailResponse,
-      brokerEmail: brokerEmailResponse
+      brokerEmail: brokerEmailResponse,
+      adminEmail: adminEmailResponse
     });
 
     return NextResponse.json({ 
       success: true,
       data: {
-        userEmailId: userEmailResponse.data?.id,
-        brokerEmailId: brokerEmailResponse.data?.id
+        date: formattedDate,
+        time,
+        userEmailId: userEmailResponse.data?.id
       }
     });
   } catch (error) {
-    console.error('Error scheduling broker call:', error);
+    console.error('Error scheduling call:', error);
     return NextResponse.json({ 
       error: 'Failed to schedule call',
       details: error instanceof Error ? error.message : 'Unknown error'

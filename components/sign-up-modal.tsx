@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { useToast } from "@/components/ui/use-toast"
 import { Spinner } from "@/components/ui/spinner"
+import { sendEmail } from "@/lib/email"
 
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -48,17 +49,30 @@ export function SignUpModal({ isOpen, onClose }: SignUpModalProps) {
     setIsSubmitting(true)
 
     try {
-      const response = await fetch("/api/submit-form", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      })
-
-      if (!response.ok) {
-        throw new Error("Failed to submit form")
-      }
+      // Send form submission email to admin
+      await sendEmail({
+        type: 'form_submission',
+        to: process.env.NEXT_PUBLIC_ADMIN_EMAIL || 'newlead@ratetracker.us',
+        subject: 'New Rate Tracking Lead',
+        data: {
+          name: data.name,
+          email: data.email,
+          message: `
+            Loan Type: ${data.type}
+            ${data.refinanceType ? `Refinance Goal: ${data.refinanceType}` : ''}
+          `,
+          formType: 'Rate Tracking'
+        }
+      });
+      
+      // Send welcome email to user
+      await sendEmail({
+        type: 'welcome',
+        to: data.email,
+        data: {
+          firstName: data.name.split(' ')[0] // Use first name for personalization
+        }
+      });
 
       toast({
         title: "Success!",

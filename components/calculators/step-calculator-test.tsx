@@ -275,28 +275,52 @@ export function StepCalculatorTest({ onCalculate, onProgressChange }: StepCalcul
 
   const handleContactSubmit = async () => {
     try {
-      const response = await fetch('/api/calculator/submit', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name,
-          email,
-          ...getSummaryData()
-        })
-      })
+      // Validate form data before attempting to submit
+      if (!name || !email || (loanGoal === 'purchase' && hasRealtor === null)) {
+        console.log('Invalid form data:', { name, email, loanGoal, hasRealtor });
+        return;
+      }
 
-      if (response.ok) {
-        // Track contact info submission
-        posthog.capture('contact_info_submitted', {
-          loan_goal: loanGoal
-        })
-        
-        handleNext()
+      // First proceed to next step regardless of API call success
+      // This ensures the user can continue even if there are network issues
+      const nextStepIndex = visibleSteps.findIndex(step => step.id === "schedule-broker");
+      if (nextStepIndex !== -1) {
+        setCurrentStep(nextStepIndex);
+      }
+
+      // Then attempt to submit the data to the API
+      try {
+        const response = await fetch('/api/calculator/submit', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            name,
+            email,
+            calculatorData: getSummaryData(),
+            hasRealtor: loanGoal === 'purchase' ? hasRealtor : undefined
+          })
+        });
+
+        if (response.ok) {
+          // Try to track event, but don't block progress if it fails
+          try {
+            posthog.capture('contact_info_submitted', {
+              loan_goal: loanGoal
+            });
+          } catch (analyticsError) {
+            console.error('Analytics error (non-blocking):', analyticsError);
+          }
+        } else {
+          console.error('API response not ok:', await response.text());
+        }
+      } catch (apiError) {
+        console.error('Error submitting contact info to API:', apiError);
+        // We don't block the user's progress due to API errors
       }
     } catch (error) {
-      console.error('Error submitting contact info:', error)
+      console.error('Error in handleContactSubmit:', error);
     }
   }
 
@@ -410,32 +434,51 @@ export function StepCalculatorTest({ onCalculate, onProgressChange }: StepCalcul
     if (!selectedDate || !selectedTime) return
 
     try {
-      const response = await fetch('/api/calculator/schedule', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name,
-          email,
-          date: selectedDate,
-          time: selectedTime,
-          ...getSummaryData()
-        })
-      })
+      // Find the success step index
+      const successStepIndex = visibleSteps.findIndex(step => step.id === "success");
+      
+      // First move to the success step to provide immediate feedback
+      if (successStepIndex !== -1) {
+        setCurrentStep(successStepIndex);
+      }
+      
+      // Then attempt API call
+      try {
+        const response = await fetch('/api/calculator/schedule', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            name,
+            email,
+            date: selectedDate,
+            time: selectedTime,
+            ...getSummaryData()
+          })
+        });
 
-      if (response.ok) {
-        // Track broker call scheduling
-        posthog.capture('broker_call_scheduled', {
-          loan_goal: loanGoal,
-          scheduled_date: selectedDate,
-          scheduled_time: selectedTime
-        })
-        
-        handleNext()
+        if (response.ok) {
+          // Try to track event, but don't block progress if it fails
+          try {
+            posthog.capture('broker_call_scheduled', {
+              loan_goal: loanGoal,
+              scheduled_date: selectedDate,
+              scheduled_time: selectedTime
+            });
+          } catch (analyticsError) {
+            console.error('Analytics error (non-blocking):', analyticsError);
+          }
+        } else {
+          console.error('API response not ok:', await response.text());
+          // Don't block user progress, but log the error
+        }
+      } catch (apiError) {
+        console.error('Error submitting schedule to API:', apiError);
+        // We don't block the user's progress due to API errors
       }
     } catch (error) {
-      console.error('Error scheduling call:', error)
+      console.error('Error in handleScheduleSubmit:', error);
     }
   }
 
@@ -719,8 +762,11 @@ export function StepCalculatorTest({ onCalculate, onProgressChange }: StepCalcul
               <div className="space-y-2">
                 <p className="text-sm text-center text-gray-500">Are you working with a realtor?</p>
                 <RadioGroup
-                  defaultValue={hasRealtor === null ? undefined : hasRealtor ? "yes" : "no"}
-                  onValueChange={(value) => setHasRealtor(value === "yes")}
+                  value={hasRealtor === true ? "yes" : hasRealtor === false ? "no" : ""}
+                  onValueChange={(value) => {
+                    console.log('Setting hasRealtor to:', value === "yes");
+                    setHasRealtor(value === "yes");
+                  }}
                   className="grid grid-cols-2 gap-4"
                 >
                   <div>

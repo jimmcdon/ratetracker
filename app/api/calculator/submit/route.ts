@@ -6,23 +6,24 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 // Using verified domain email address
 const FROM_EMAIL = process.env.NODE_ENV === 'production' 
   ? 'Rate Tracker <info@ratetracker.us>'
-  : 'Rate Tracker <onboarding@resend.dev>';
+  : 'Rate Tracker <info@ratetracker.us>'; // Using production email for testing
 const TEST_EMAIL = 'delivered@resend.dev';  // Resend's test recipient email
 
 export async function POST(req: Request) {
   try {
-    const { name, email, calculatorData } = await req.json();
+    const { name, email, calculatorData, hasRealtor } = await req.json();
     
     // Use production email in production, test email in development
     const recipientEmail = process.env.NODE_ENV === 'production' ? email : TEST_EMAIL;
     const adminEmail = process.env.NODE_ENV === 'production' ? 
-      (process.env.ADMIN_EMAIL || 'newlead@ratetracker.us') : 
+      (process.env.NEXT_PUBLIC_ADMIN_EMAIL || 'newlead@ratetracker.us') : 
       TEST_EMAIL;
 
     console.log('Processing calculator submission:', {
       name,
       email: recipientEmail,
-      calculatorData
+      calculatorData,
+      hasRealtor
     });
 
     // Send confirmation to user
@@ -73,6 +74,7 @@ export async function POST(req: Request) {
               ${calculatorData.downPayment ? `<li style="margin: 10px 0;">💵 Down Payment: ${calculatorData.downPayment}</li>` : ''}
               ${calculatorData.loanAmount ? `<li style="margin: 10px 0;">💵 Current Loan: ${calculatorData.loanAmount}</li>` : ''}
               ${calculatorData.cashAmount ? `<li style="margin: 10px 0;">💵 Cash Out: ${calculatorData.cashAmount}</li>` : ''}
+              ${hasRealtor !== undefined ? `<li style="margin: 10px 0;">🏠 Working with realtor: ${hasRealtor ? 'Yes' : 'No'}</li>` : ''}
             </ul>
           </div>
 
