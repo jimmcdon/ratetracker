@@ -36,28 +36,7 @@ interface NewHeroSectionProps {
 
 export default function NewHeroSection({ variant: initialVariant = 'rate' }: NewHeroSectionProps) {
   const [activeVariant, setActiveVariant] = useState<'equity' | 'rate' | 'purchase'>(initialVariant)
-  const [isPaused, setIsPaused] = useState(false)
-  const pauseTimeout = useRef<NodeJS.Timeout | null>(null)
   const variants: Array<'equity' | 'purchase' | 'rate'> = ['equity', 'purchase', 'rate']
-
-  // Auto-advance logic
-  useEffect(() => {
-    if (isPaused) return
-    const interval = setInterval(() => {
-      setActiveVariant((prev) => {
-        const idx = variants.indexOf(prev)
-        return variants[(idx + 1) % variants.length]
-      })
-    }, 4000)
-    return () => clearInterval(interval)
-  }, [isPaused])
-
-  // Pause on interaction, resume after 3s
-  const handlePause = () => {
-    setIsPaused(true)
-    if (pauseTimeout.current) clearTimeout(pauseTimeout.current)
-    pauseTimeout.current = setTimeout(() => setIsPaused(false), 3000)
-  }
 
   const content = heroContent[activeVariant]
 
@@ -67,16 +46,13 @@ export default function NewHeroSection({ variant: initialVariant = 'rate' }: New
         {/* Carousel Tabs */}
         <div className="mb-12">
           {/* Desktop: Button Tabs */}
-          <div className="hidden sm:flex flex-row justify-center items-center gap-4 relative"
-            onMouseEnter={handlePause}
-            onMouseLeave={() => setIsPaused(false)}
-          >
+          <div className="hidden sm:flex flex-row justify-center items-center gap-4 relative">
             {variants.map((v, idx) => (
               <motion.button
                 key={v}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                onClick={() => { setActiveVariant(v); handlePause() }}
+                onClick={() => setActiveVariant(v)}
                 className={`flex items-center gap-3 px-6 py-4 rounded-xl w-full sm:w-auto font-medium transition-all duration-300 relative overflow-hidden ${
                   activeVariant === v
                     ? 'bg-gray-900 text-white shadow-lg'
@@ -188,14 +164,35 @@ export default function NewHeroSection({ variant: initialVariant = 'rate' }: New
 
 // SectionZero: New top-of-page section
 export function SectionZero() {
+  const headlines = [
+    "Mortgage Intelligence, Perfectly Timed",
+    "Never Miss Your Mortgage Sweet Spot",
+    "Smart Rate Timing, Smarter Home Financing",
+    "Rate Opportunities, Delivered When You Need Them",
+    "Maximum Mortgage Savings, Minimum Effort"
+  ];
+  const [headline, setHeadline] = useState("");
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    const randomIndex = Math.floor(Math.random() * headlines.length);
+    setHeadline(headlines[randomIndex]);
+    setMounted(true);
+  }, []);
+
   return (
     <section className="w-full py-24 bg-white border-b border-gray-100">
       <div className="max-w-3xl mx-auto px-4 flex flex-col items-center text-center">
-        <h1 className="text-5xl sm:text-6xl font-bold tracking-tight text-gray-900 mb-6">
-          AI Powered Rate Tracking,<br />Expertly Closed
-        </h1>
+        {/* Only show headline after mount to avoid SSR/CSR mismatch flash */}
+        {mounted && (
+          <h1 className="text-5xl sm:text-6xl font-bold tracking-tight text-gray-900 mb-6">
+            {headline}
+          </h1>
+        )}
         <p className="text-lg text-gray-600 mb-10 max-w-xl">
-          Experience the future of mortgage rate tracking—smarter, faster, and always on your side.
+          Let our AI-powered RateTracker monitor the market around the clock, alerting you when 
+          conditions align with your unique financial goals—whether buying your dream home, 
+          accessing equity, or saving thousands through refinancing.
         </p>
         <div className="flex items-center gap-4">
           {/* Placeholder avatars */}
