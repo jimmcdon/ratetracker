@@ -22,7 +22,8 @@ export default function CalculatorCarousel({ onTargetPaymentEntered }: Calculato
     <Carousel
       opts={{
         align: "start",
-        loop: true,
+        loop: false,
+        duration: 50,
       }}
       className="w-full relative"
     >

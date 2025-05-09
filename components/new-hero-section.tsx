@@ -19,7 +19,10 @@ const heroContent: Record<string, HeroContentType> = {
     cta: "Track Rates to Unlock My Cash"
   },
   rate: {
-    headline: ["Never Miss a Mortgage Rate Drop Again to maximize your payment savings", "Rate Drop—Save Thousands", "Automatically"],
+    headline: [
+      "Never Miss a Rate Drop Again",
+      "Maximize Your Payment Savings Automatically"
+    ],
     subheadline: "Set your ideal mortgage goal once—whether buying, refinancing, or unlocking cash—and we'll track the market 24/7. Get notified the moment the right rate hits, without spam or sales calls.",
     cta: "Start Tracking My Rate"
   },

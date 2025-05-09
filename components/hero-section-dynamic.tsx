@@ -16,11 +16,12 @@ export default function HeroDynamic() {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % benefitMessages.length);
-    }, 3000);
-    return () => clearInterval(timer);
-  }, []);
+    if (currentIndex >= benefitMessages.length - 1) return;
+    const timeout = setTimeout(() => {
+      setCurrentIndex(currentIndex + 1);
+    }, 6000);
+    return () => clearTimeout(timeout);
+  }, [currentIndex]);
 
   return (
     <section className="relative overflow-hidden pt-24 md:pt-32 pb-16 bg-white" aria-labelledby="hero-heading">

@@ -5,7 +5,7 @@ import dynamic from "next/dynamic"
 import NewHeroSection, { SectionZero } from "@/components/new-hero-section"
 import PainPointsSolutions from "@/components/pain-points-solutions"
 import Script from "next/script"
-import { CalculatorJourneySection } from "./sections/calculator-journey"
+import { CalculatorSection, JourneySection } from "./sections/calculator-journey"
 
 const CalculatorCarousel = dynamic(() => import("@/components/calculator-carousel"), {
   loading: () => <div>Loading calculator...</div>,
@@ -57,7 +57,10 @@ export default function Home() {
 
       <div className="flex flex-col gap-8">
         <Suspense fallback={<div>Loading calculator...</div>}>
-          <CalculatorJourneySection />
+          <CalculatorSection />
+        </Suspense>
+        <Suspense fallback={<div>Loading journey...</div>}>
+          <JourneySection />
         </Suspense>
       </div>
 

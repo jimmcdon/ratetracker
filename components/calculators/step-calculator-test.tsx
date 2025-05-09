@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { ArrowRight, ArrowLeft, Calculator, ArrowRightCircle, Home, Banknote, TrendingDown, Mail, User, Calendar } from "lucide-react"
+import { ArrowRight, ArrowLeft, Calculator, ArrowRightCircle, Home, Banknote, TrendingDown, Mail, User, Calendar, Clock } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useCalculatorContext } from "@/contexts/calculator-context"
 import { formatCurrency } from "@/lib/utils/calculator"
@@ -14,6 +14,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
 import { Calendar as CalendarComponent } from "@/components/ui/calendar"
 import { usePostHog } from 'posthog-js/react'
+import { useRouter } from "next/navigation"
 
 type LoanGoal = 'purchase' | 'refinance' | 'cashout' | 'shorten-term'
 
@@ -131,6 +132,7 @@ export function StepCalculatorTest({ onCalculate, onProgressChange }: StepCalcul
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined)
   const [selectedTime, setSelectedTime] = useState<string | undefined>(undefined)
   const [hasRealtor, setHasRealtor] = useState<boolean | null>(null)
+  const router = useRouter()
 
   const getVisibleSteps = () => {
     if (!loanGoal) return steps.filter(step => step.id === "goal")
@@ -561,7 +563,10 @@ export function StepCalculatorTest({ onCalculate, onProgressChange }: StepCalcul
           <div className="space-y-6">
             <RadioGroup
               value={loanGoal || ""}
-              onValueChange={(value) => setLoanGoal(value as LoanGoal)}
+              onValueChange={(value) => {
+                setLoanGoal(value as LoanGoal);
+                router.push(`/calculate/${value}`);
+              }}
               className="grid grid-cols-1 gap-4"
             >
               <Label className="cursor-pointer">
@@ -597,17 +602,14 @@ export function StepCalculatorTest({ onCalculate, onProgressChange }: StepCalcul
               <Label className="cursor-pointer">
                 <div className="flex items-center space-x-3 rounded-lg border p-4 hover:bg-gray-50">
                   <RadioGroupItem value="shorten-term" id="goal-shorten-term" />
-                  <Label htmlFor="goal-shorten-term">Shorten Term</Label>
+                  <Clock className="w-5 h-5 text-primary" />
+                  <div className="flex-1">
+                    <Label htmlFor="goal-shorten-term">Shorten Term</Label>
+                    <p className="text-sm text-gray-500">Pay off your mortgage faster and save on interest</p>
+                  </div>
                 </div>
               </Label>
             </RadioGroup>
-            <Button 
-              onClick={handleNext}
-              disabled={!loanGoal}
-              className="w-full"
-            >
-              Continue <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
           </div>
         )
 
