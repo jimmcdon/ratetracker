@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { X, Menu } from "lucide-react"
+import { X, Menu, ChevronDown, Phone } from "lucide-react"
 import { cn } from "@/lib/utils"
 import ModalButton from './modal-button'
 
@@ -41,12 +41,7 @@ export function MainNav() {
         aria-label="Main Navigation"
       >
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className={cn(
-            "flex items-center justify-between",
-            hasScrolled
-              ? "max-w-3xl mx-auto px-4 rounded-full border bg-white"
-              : ""
-          )}>
+          <div className="flex items-center justify-between">
             <div className="flex items-center">
               <div className="text-xl font-bold text-gray-900 relative">
                 <span className="italic">
@@ -54,10 +49,12 @@ export function MainNav() {
                 </span>
               </div>
             </div>
-            <div className="hidden md:block">
-              <div className="ml-10 flex items-center">
-                <ModalButton>Track your rate</ModalButton>
-              </div>
+            <div className="hidden md:flex items-center gap-8">
+              <NavItem label="Unlock Cash" />
+              <NavItem label="Buy Your Dream Home" />
+              <NavItem label="Lower your payment" />
+              <NavItem label="Learning Hub" />
+              <div className="ml-4"><ModalButton>Track your rate</ModalButton></div>
             </div>
             <div className="md:hidden">
               <Button
@@ -75,33 +72,48 @@ export function MainNav() {
         </div>
       </nav>
 
-      {/* Mobile menu, show/hide based on menu state */}
-      <div className={`md:hidden ${isOpen ? "block" : "hidden"}`}>
-        <div className="fixed inset-0 z-50 bg-white">
-          <div className="pt-5 pb-6 px-4">
-            <div className="flex items-center justify-between">
-              <div className="text-xl font-bold text-gray-900 italic">RateTracker</div>
-              <Button 
-                onClick={() => setIsOpen(false)} 
-                variant="ghost" 
-                size="icon" 
-                aria-label="Close menu"
-                className="text-gray-600 hover:text-gray-900"
-              >
-                <X className="h-6 w-6" />
-              </Button>
-            </div>
-            <div className="mt-6">
-              <nav className="grid gap-y-8">
-                <div onClick={() => setIsOpen(false)}>
-                  <ModalButton>Track your rate</ModalButton>
-                </div>
-              </nav>
-            </div>
+      {/* Slide-out mobile menu */}
+      <div className={`md:hidden fixed inset-0 z-50 transition-all duration-300 ${isOpen ? '' : 'pointer-events-none'}`}>
+        {/* Overlay */}
+        <div
+          className={`absolute inset-0 bg-black/40 transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0'}`}
+          onClick={() => setIsOpen(false)}
+        />
+        {/* Slide-out panel */}
+        <div className={`fixed top-0 right-0 h-full w-72 bg-white shadow-xl transform transition-transform duration-300 ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+          <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
+            <div className="text-xl font-bold text-gray-900 italic">RateTracker</div>
+            <Button 
+              onClick={() => setIsOpen(false)} 
+              variant="ghost" 
+              size="icon" 
+              aria-label="Close menu"
+              className="text-gray-600 hover:text-gray-900"
+            >
+              <X className="h-6 w-6" />
+            </Button>
+          </div>
+          <nav className="flex flex-col gap-2 px-6 py-6">
+            <button onClick={() => setIsOpen(false)} className="text-left w-full py-3 px-2 text-lg font-medium text-gray-900 hover:text-primary focus:outline-none bg-transparent">Unlock Cash</button>
+            <button onClick={() => setIsOpen(false)} className="text-left w-full py-3 px-2 text-lg font-medium text-gray-900 hover:text-primary focus:outline-none bg-transparent">Buy Your Dream Home</button>
+            <button onClick={() => setIsOpen(false)} className="text-left w-full py-3 px-2 text-lg font-medium text-gray-900 hover:text-primary focus:outline-none bg-transparent">Lower your payment</button>
+            <button onClick={() => setIsOpen(false)} className="text-left w-full py-3 px-2 text-lg font-medium text-gray-900 hover:text-primary focus:outline-none bg-transparent">Learning Hub</button>
+          </nav>
+          <div className="px-6 pb-8 mt-auto">
+            <ModalButton>Track your rate</ModalButton>
           </div>
         </div>
       </div>
     </div>
+  )
+}
+
+function NavItem({ label, chevron = true }: { label: string, chevron?: boolean }) {
+  return (
+    <button className="flex items-center gap-1 text-base font-medium text-gray-900 hover:text-primary focus:outline-none bg-transparent">
+      {label}
+      {chevron && <ChevronDown className="w-4 h-4 text-blue-500" />}
+    </button>
   )
 }
 

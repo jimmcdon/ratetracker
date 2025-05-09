@@ -16,7 +16,8 @@ import { sendEmail } from "@/lib/email"
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Please enter a valid email address"),
-  type: z.enum(["purchase", "refinance", "cashout"]),
+  phone: z.string().optional(),
+  type: z.enum(["purchase", "refinance", "cashout", "shorten-save"]),
   refinanceType: z.enum(["lower-payment", "cash-out", "shortened-term"]).optional(),
 })
 
@@ -36,6 +37,7 @@ export function SignUpModal({ isOpen, onClose }: SignUpModalProps) {
     watch,
     formState: { errors },
     reset,
+    getValues,
   } = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -44,6 +46,8 @@ export function SignUpModal({ isOpen, onClose }: SignUpModalProps) {
   })
 
   const formType = watch("type")
+  const [showExtended, setShowExtended] = useState(false)
+  const [initialSubmitted, setInitialSubmitted] = useState(false)
 
   const onSubmit = async (data: FormData) => {
     setIsSubmitting(true)
@@ -57,6 +61,7 @@ export function SignUpModal({ isOpen, onClose }: SignUpModalProps) {
         data: {
           name: data.name,
           email: data.email,
+          phone: data.phone,
           message: `
             Loan Type: ${data.type}
             ${data.refinanceType ? `Refinance Goal: ${data.refinanceType}` : ''}
@@ -103,61 +108,79 @@ export function SignUpModal({ isOpen, onClose }: SignUpModalProps) {
             Enter your information below to start tracking your mortgage rate and get notified when you can save.
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          <div className="space-y-2">
-            <Label htmlFor="name" className="text-sm font-medium text-slate-600">
-              Name
-            </Label>
-            <Input
-              id="name"
-              placeholder="Jane Smith"
-              {...register("name")}
-              className="bg-slate-50 border-slate-200"
-              aria-invalid={errors.name ? "true" : "false"}
-            />
-            {errors.name && <p className="text-sm text-red-500">{errors.name.message}</p>}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="email" className="text-sm font-medium text-slate-600">
-              Email
-            </Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="jane@example.com"
-              {...register("email")}
-              className="bg-slate-50 border-slate-200"
-              aria-invalid={errors.email ? "true" : "false"}
-            />
-            {errors.email && <p className="text-sm text-red-500">{errors.email.message}</p>}
-          </div>
-
-          <div className="space-y-3">
-            <Label className="text-sm font-medium text-slate-600">What are you looking to do?</Label>
-            <RadioGroup {...register("type")} className="flex flex-col gap-2">
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="purchase" id="purchase" />
-                <Label htmlFor="purchase" className="text-sm">
-                  Purchase a Home
-                </Label>
+        <form onSubmit={handleSubmit((data) => {
+          if (!initialSubmitted) {
+            setInitialSubmitted(true)
+          } else if (showExtended) {
+            onSubmit(data)
+          } else {
+            onSubmit(data)
+          }
+        })} className="space-y-6">
+          {!initialSubmitted && (
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="name" className="text-sm font-medium text-slate-600">Name</Label>
+                <Input id="name" placeholder="Jane Smith" {...register("name")}
+                  className="bg-slate-50 border-slate-200" aria-invalid={errors.name ? "true" : "false"} />
+                {errors.name && <p className="text-sm text-red-500">{errors.name.message}</p>}
               </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="refinance" id="refinance" />
-                <Label htmlFor="refinance" className="text-sm">
-                  Refinance Current Mortgage
-                </Label>
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-sm font-medium text-slate-600">Email</Label>
+                <Input id="email" type="email" placeholder="jane@example.com" {...register("email")}
+                  className="bg-slate-50 border-slate-200" aria-invalid={errors.email ? "true" : "false"} />
+                {errors.email && <p className="text-sm text-red-500">{errors.email.message}</p>}
               </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="cashout" id="cashout" />
-                <Label htmlFor="cashout" className="text-sm">
-                  Cash Out Refinance
-                </Label>
+              <div className="space-y-2">
+                <Label htmlFor="phone" className="text-sm font-medium text-slate-600">Phone</Label>
+                <Input id="phone" type="tel" placeholder="(555) 555-5555" {...register("phone")}
+                  className="bg-slate-50 border-slate-200" aria-invalid={errors.phone ? "true" : "false"} />
+                {errors.phone && <p className="text-sm text-red-500">{errors.phone.message}</p>}
               </div>
-            </RadioGroup>
-          </div>
-
-          {formType === "refinance" && (
+              <Button type="submit" className="w-full bg-[#10172A] hover:bg-opacity-90 transition-opacity">Continue</Button>
+            </>
+          )}
+          {initialSubmitted && !showExtended && (
+            <div className="space-y-4 text-center">
+              <p className="text-base text-gray-700">Would you like to add more info now for better rate tracking?</p>
+              <div className="flex justify-center gap-4">
+                <Button type="button" onClick={() => setShowExtended(true)} className="w-24">Yes</Button>
+                <Button type="button" onClick={() => onSubmit(getValues())} className="w-24" variant="outline">No</Button>
+              </div>
+            </div>
+          )}
+          {showExtended && (
+            <div className="space-y-3">
+              <Label className="text-sm font-medium text-slate-600">What are you looking to do?</Label>
+              <RadioGroup {...register("type")} className="flex flex-col gap-2">
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="purchase" id="purchase" />
+                  <Label htmlFor="purchase" className="text-sm">
+                    Purchase a Home
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="refinance" id="refinance" />
+                  <Label htmlFor="refinance" className="text-sm">
+                    Refinance Current Mortgage
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="cashout" id="cashout" />
+                  <Label htmlFor="cashout" className="text-sm">
+                    Cash Out Refinance
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="shorten-save" id="shorten-save" />
+                  <Label htmlFor="shorten-save" className="text-sm">
+                    Shorten Term and Save Big!
+                  </Label>
+                </div>
+              </RadioGroup>
+            </div>
+          )}
+          {showExtended && formType === "refinance" && (
             <div className="space-y-3">
               <Label className="text-sm font-medium text-slate-600">What is your goal?</Label>
               <RadioGroup {...register("refinanceType")} className="flex flex-col gap-2">
@@ -182,7 +205,6 @@ export function SignUpModal({ isOpen, onClose }: SignUpModalProps) {
               </RadioGroup>
             </div>
           )}
-
           <Button
             type="submit"
             className="w-full bg-[#10172A] hover:bg-opacity-90 transition-opacity"

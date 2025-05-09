@@ -15,7 +15,7 @@ import { Label } from "@/components/ui/label"
 import { Calendar as CalendarComponent } from "@/components/ui/calendar"
 import { usePostHog } from 'posthog-js/react'
 
-type LoanGoal = 'purchase' | 'refinance' | 'cashout'
+type LoanGoal = 'purchase' | 'refinance' | 'cashout' | 'shorten-term'
 
 interface StepCalculatorTestProps {
   onCalculate?: (monthlySavings: number) => void
@@ -57,6 +57,12 @@ const steps: Step[] = [
     showFor: ['cashout']
   },
   {
+    id: "cashout-type",
+    title: "How would you like to access your cash?",
+    description: "Would you like to refinance your current mortgage or add a 2nd (HELOC)?",
+    showFor: ['cashout'],
+  },
+  {
     id: "current-rate",
     title: "What is your current interest rate?",
     description: "Enter your current mortgage interest rate as a percentage.",
@@ -66,12 +72,6 @@ const steps: Step[] = [
     id: "down-payment",
     title: "What is your down payment?",
     description: "Enter your planned down payment amount.",
-    showFor: ['purchase']
-  },
-  {
-    id: "market-rate",
-    title: "What is the current market rate?",
-    description: "Enter today's market rate as a percentage.",
     showFor: ['purchase']
   },
   {
@@ -119,6 +119,7 @@ export function StepCalculatorTest({ onCalculate, onProgressChange }: StepCalcul
   const [propertyValue, setPropertyValue] = useState("")
   const [loanAmount, setLoanAmount] = useState("")
   const [cashAmount, setCashAmount] = useState("")
+  const [cashoutType, setCashoutType] = useState<'refinance' | 'heloc' | null>(null)
   const [currentRate, setCurrentRate] = useState("")
   const [marketRate, setMarketRate] = useState("")
   const [downPayment, setDownPayment] = useState("")
@@ -133,6 +134,39 @@ export function StepCalculatorTest({ onCalculate, onProgressChange }: StepCalcul
 
   const getVisibleSteps = () => {
     if (!loanGoal) return steps.filter(step => step.id === "goal")
+    if (loanGoal === 'shorten-term') {
+      return [
+        {
+          id: "loan-amount",
+          title: "What is your current loan amount?",
+          description: "Enter the remaining balance on your mortgage.",
+          showFor: ['refinance', 'cashout']
+        },
+        {
+          id: "property-value",
+          title: "What is your property value?",
+          description: "Enter the estimated value of your home.",
+          icon: Home,
+          showFor: ['purchase', 'refinance']
+        },
+        {
+          id: "current-rate",
+          title: "What is your current interest rate?",
+          description: "Enter your current mortgage interest rate as a percentage.",
+          showFor: ['refinance', 'cashout']
+        },
+        {
+          id: "loan-term",
+          title: "What is the term of your loan?",
+          description: "Enter the length of your mortgage in years."
+        },
+        {
+          id: "target-payment",
+          title: "What monthly payment are you targeting?",
+          description: "Enter your desired monthly payment."
+        }
+      ]
+    }
     return steps.filter(step => !step.showFor || step.showFor.includes(loanGoal))
   }
 
@@ -365,29 +399,23 @@ export function StepCalculatorTest({ onCalculate, onProgressChange }: StepCalcul
     const ResultContent = () => {
       switch (loanGoal) {
         case 'cashout':
-          const targetRatePayment = calculateMonthlyPayment({
-            principal: newLoanAmount,
-            rate: targetRate,
-            years: parseFloat(loanTerm)
-          })
+          const isHELOC = cashoutType === 'heloc'
+          const rateType = isHELOC ? 'variable' : 'fixed'
+          const apr = isHELOC ? 'Prime + 1%' : 'Estimated APR'
+          const payment = calculateMonthlyPayment({ principal: newLoanAmount, rate: isHELOC ? 9 : targetRate, years: parseFloat(loanTerm) })
           return (
             <div className="space-y-2">
-              <p className="text-4xl font-bold text-primary mb-6">
-                ${parseInt(cashAmount).toLocaleString()}
-              </p>
-              <p className="text-xl mb-4">Cash Available Today</p>
-              <div className="text-gray-600 space-y-1 mb-6">
-                <p>New loan amount: {formatCurrency(newLoanAmount)}</p>
-                <p>Monthly payment: {formatCurrency(targetRatePayment)}</p>
-              </div>
+              <p className="text-lg font-semibold">Estimated monthly payment for your cash out:</p>
+              <p>New loan amount: {formatCurrency(newLoanAmount)}</p>
+              <p>Estimated monthly payment: {formatCurrency(payment)}</p>
+              <p className="text-xs text-gray-500 mt-2">APR: {apr}. Rate is {rateType}. Term: {loanTerm} years. Down payment: N/A.</p>
             </div>
           )
         case 'purchase':
           return (
             <div className="space-y-2">
-              <p className="text-lg">For a {formatCurrency(parseFloat(propertyValue))} home</p>
-              <p className="text-lg">with {formatCurrency(parseFloat(downPayment))} down</p>
-              <p className="text-lg font-semibold">Your target rate is {formattedTargetRate}%</p>
+              <p className="text-lg">For a {formatCurrency(parseFloat(propertyValue))} home, with a {formatCurrency(parseFloat(downPayment))} down payment and a target payment of {formatCurrency(parseFloat(targetPayment))}, your target rate is <span className='font-semibold'>{formattedTargetRate}%</span>.</p>
+              <p className="text-xs text-gray-500 mt-2">APR is estimated. Rate is fixed. Term: {loanTerm} years. Down payment: {formatCurrency(parseFloat(downPayment))}.</p>
             </div>
           )
         case 'refinance':
@@ -396,6 +424,15 @@ export function StepCalculatorTest({ onCalculate, onProgressChange }: StepCalcul
               <p className="text-lg">Current Payment: {formatCurrency(getCurrentPayment())}</p>
               <p className="text-lg">Target Payment: {formatCurrency(parseFloat(targetPayment))}</p>
               <p className="text-lg font-semibold">Your target rate is {formattedTargetRate}%</p>
+            </div>
+          )
+        case 'shorten-term':
+          return (
+            <div className="space-y-2">
+              <p className="text-lg">New term: {loanTerm} years</p>
+              <p className="text-lg">Target rate: {formattedTargetRate}%</p>
+              <p className="text-lg">Estimated payment: {formatCurrency(calculateMonthlyPayment({ principal: newLoanAmount, rate: targetRate, years: parseFloat(loanTerm) }))}</p>
+              <p className="text-xs text-gray-500 mt-2">APR: {apr}. Rate is {rateType}. Term: {loanTerm} years. Down payment: {formatCurrency(parseFloat(downPayment))}.</p>
             </div>
           )
         default:
@@ -502,9 +539,6 @@ export function StepCalculatorTest({ onCalculate, onProgressChange }: StepCalcul
         case "current-rate":
           if (currentRate && parseFloat(currentRate) > 0) handleNext()
           break
-        case "market-rate":
-          if (marketRate && parseFloat(marketRate) > 0) handleNext()
-          break
         case "loan-term":
           if (loanTerm && parseFloat(loanTerm) > 0) handleNext()
           break
@@ -532,32 +566,38 @@ export function StepCalculatorTest({ onCalculate, onProgressChange }: StepCalcul
             >
               <Label className="cursor-pointer">
                 <div className="flex items-center space-x-3 rounded-lg border p-4 hover:bg-gray-50">
-                  <RadioGroupItem value="purchase" id="purchase" />
+                  <RadioGroupItem value="purchase" id="goal-purchase" />
                   <Home className="w-5 h-5 text-primary" />
                   <div className="flex-1">
-                    <Label htmlFor="purchase">Own Your Dream Home</Label>
+                    <Label htmlFor="goal-purchase">Purchase a Home</Label>
                     <p className="text-sm text-gray-500">Find the perfect rate for your new home</p>
                   </div>
                 </div>
               </Label>
               <Label className="cursor-pointer">
                 <div className="flex items-center space-x-3 rounded-lg border p-4 hover:bg-gray-50">
-                  <RadioGroupItem value="cashout" id="cashout" />
+                  <RadioGroupItem value="refinance" id="goal-refinance" />
+                  <TrendingDown className="w-5 h-5 text-primary" />
+                  <div className="flex-1">
+                    <Label htmlFor="goal-refinance">Refinance Current Mortgage</Label>
+                    <p className="text-sm text-gray-500">Reduce your monthly payment with a better rate</p>
+                  </div>
+                </div>
+              </Label>
+              <Label className="cursor-pointer">
+                <div className="flex items-center space-x-3 rounded-lg border p-4 hover:bg-gray-50">
+                  <RadioGroupItem value="cashout" id="goal-cashout" />
                   <Banknote className="w-5 h-5 text-primary" />
                   <div className="flex-1">
-                    <Label htmlFor="cashout">Unlock Your Cash</Label>
+                    <Label htmlFor="goal-cashout">Cash Out Refinance</Label>
                     <p className="text-sm text-gray-500">Access your home equity when you need it</p>
                   </div>
                 </div>
               </Label>
               <Label className="cursor-pointer">
                 <div className="flex items-center space-x-3 rounded-lg border p-4 hover:bg-gray-50">
-                  <RadioGroupItem value="refinance" id="refinance" />
-                  <TrendingDown className="w-5 h-5 text-primary" />
-                  <div className="flex-1">
-                    <Label htmlFor="refinance">Lower Your Payment</Label>
-                    <p className="text-sm text-gray-500">Reduce your monthly payment with a better rate</p>
-                  </div>
+                  <RadioGroupItem value="shorten-term" id="goal-shorten-term" />
+                  <Label htmlFor="goal-shorten-term">Shorten Term</Label>
                 </div>
               </Label>
             </RadioGroup>
@@ -619,6 +659,31 @@ export function StepCalculatorTest({ onCalculate, onProgressChange }: StepCalcul
           </div>
         )
 
+      case "cashout-type":
+        return (
+          <div className="space-y-4">
+            <Label className="text-sm font-medium text-slate-600">How would you like to access your cash?</Label>
+            <RadioGroup value={cashoutType || ""} onValueChange={v => setCashoutType(v as 'refinance' | 'heloc')}>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="refinance" id="cashout-refinance" />
+                <Label htmlFor="cashout-refinance">Refinance current mortgage</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="heloc" id="cashout-heloc" />
+                <Label htmlFor="cashout-heloc">Add a 2nd/HELOC</Label>
+              </div>
+            </RadioGroup>
+            <div className="flex justify-between">
+              <Button variant="ghost" onClick={handleBack}>
+                <ArrowLeft className="mr-2 h-4 w-4" /> Back
+              </Button>
+              <Button onClick={handleNext} disabled={!cashoutType}>
+                Next <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )
+
       case "current-rate":
         return (
           <div className="space-y-4">
@@ -648,38 +713,45 @@ export function StepCalculatorTest({ onCalculate, onProgressChange }: StepCalcul
           </div>
         )
 
-      case "market-rate":
-        return (
-          <div className="space-y-4">
-            <div className="relative w-32 mx-auto">
-              <Input
-                type="text"
-                placeholder="6.5"
-                value={marketRate.replace('%', '')}
-                onChange={(e) => setMarketRate(formatInput(e.target.value, true))}
-                onKeyPress={handleKeyPress}
-                className="text-lg text-center pr-8"
-                autoFocus
-              />
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">%</span>
-            </div>
-            <div className="flex justify-between">
-              <Button variant="ghost" onClick={handleBack}>
-                <ArrowLeft className="mr-2 h-4 w-4" /> Back
-              </Button>
-              <Button 
-                onClick={handleNext}
-                disabled={!marketRate || parseFloat(marketRate) <= 0}
-              >
-                Next <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        )
-
       case "loan-term":
         return (
           <div className="space-y-4">
+            {loanGoal === 'shorten-term' && (
+              <div className="flex justify-center gap-4 mb-2">
+                <Button
+                  type="button"
+                  variant={loanTerm === '30' ? 'default' : 'outline'}
+                  onClick={() => setLoanTerm('30')}
+                  className="w-24"
+                >
+                  30YR
+                </Button>
+                <Button
+                  type="button"
+                  variant={loanTerm === '20' ? 'default' : 'outline'}
+                  onClick={() => setLoanTerm('20')}
+                  className="w-24"
+                >
+                  20YR
+                </Button>
+                <Button
+                  type="button"
+                  variant={loanTerm === '15' ? 'default' : 'outline'}
+                  onClick={() => setLoanTerm('15')}
+                  className="w-24"
+                >
+                  15YR
+                </Button>
+                <Button
+                  type="button"
+                  variant={loanTerm === '10' ? 'default' : 'outline'}
+                  onClick={() => setLoanTerm('10')}
+                  className="w-24"
+                >
+                  10YR
+                </Button>
+              </div>
+            )}
             <div className="relative w-32 mx-auto">
               <Input
                 type="text"

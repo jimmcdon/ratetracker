@@ -41,6 +41,11 @@ export function CalculatorJourneySection() {
             <ModalButton>Start Your Journey</ModalButton>
           </div>
         </div>
+        {/* Compliance Disclosure */}
+        <div className="mt-10 text-xs text-gray-500 text-center max-w-2xl mx-auto">
+          All rates listed are quoted with a standard loan cost of 3.5% to determine APR. Rates are subject to change and may vary based on creditworthiness or loan terms.<br />
+          All loan officers affiliated with RateTracker have been trained, vetted, and uphold their fiduciary responsibility while maintaining the same pay structure.
+        </div>
       </div>
     </section>
   )

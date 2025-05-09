@@ -2,7 +2,7 @@
 
 import { Suspense, useState, useEffect } from "react"
 import dynamic from "next/dynamic"
-import NewHeroSection from "@/components/new-hero-section"
+import NewHeroSection, { SectionZero } from "@/components/new-hero-section"
 import PainPointsSolutions from "@/components/pain-points-solutions"
 import Script from "next/script"
 import { CalculatorJourneySection } from "./sections/calculator-journey"
@@ -52,6 +52,7 @@ export default function Home() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
 
+      <SectionZero />
       <NewHeroSection variant={variant} />
 
       <div className="flex flex-col gap-8">
