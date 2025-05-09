@@ -21,6 +21,7 @@ type LoanGoal = 'purchase' | 'refinance' | 'cashout' | 'shorten-term'
 interface StepCalculatorTestProps {
   onCalculate?: (monthlySavings: number) => void
   onProgressChange?: (stage: 'initial' | 'details' | 'complete') => void
+  initialGoal?: LoanGoal
 }
 
 interface Step {
@@ -112,11 +113,44 @@ const steps: Step[] = [
   }
 ]
 
-export function StepCalculatorTest({ onCalculate, onProgressChange }: StepCalculatorTestProps) {
+// Sidebar component for info and testimonial
+function StepSidebar() {
+  return (
+    <div className="w-full md:w-80 flex flex-col gap-6">
+      {/* Did you know card */}
+      <div className="bg-blue-50 p-4 rounded-xl flex items-center gap-4">
+        <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="avatar" className="w-12 h-12 rounded-full" />
+        <div>
+          <div className="font-semibold">Did you know?</div>
+          <div className="text-sm text-gray-600">
+            Specific loans are built for situations like rental homes, so <span className="font-semibold">how you use the home</span> is important.
+          </div>
+        </div>
+      </div>
+      {/* Testimonial card */}
+      <div className="bg-white p-4 rounded-xl shadow">
+        <div className="flex items-center gap-2 mb-2">
+          <span className="text-green-500">★★★★★</span>
+        </div>
+        <div className="font-semibold mb-1">Had a great experience with RateTracker!</div>
+        <div className="text-sm text-gray-600 mb-2">
+          RateTracker helped me get approved and in my new home as a first time homebuyer with hardly any issues. My advisor answered all my questions and kept me informed throughout the process. Highly recommended!
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="bg-gray-200 rounded-full px-2 py-1 text-xs">TD</span>
+          <span className="text-xs text-gray-500">Thien D</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function StepCalculatorTest({ onCalculate, onProgressChange, initialGoal }: StepCalculatorTestProps) {
   const posthog = usePostHog()
   const { setMonthlySavings, setYearlySavings } = useCalculatorContext()
+  const router = useRouter()
   const [currentStep, setCurrentStep] = useState(0)
-  const [loanGoal, setLoanGoal] = useState<LoanGoal | null>(null)
+  const [loanGoal, setLoanGoal] = useState<LoanGoal | null>(initialGoal ?? null)
   const [propertyValue, setPropertyValue] = useState("")
   const [loanAmount, setLoanAmount] = useState("")
   const [cashAmount, setCashAmount] = useState("")
@@ -132,7 +166,6 @@ export function StepCalculatorTest({ onCalculate, onProgressChange }: StepCalcul
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined)
   const [selectedTime, setSelectedTime] = useState<string | undefined>(undefined)
   const [hasRealtor, setHasRealtor] = useState<boolean | null>(null)
-  const router = useRouter()
 
   const getVisibleSteps = () => {
     if (!loanGoal) return steps.filter(step => step.id === "goal")
@@ -1054,45 +1087,110 @@ export function StepCalculatorTest({ onCalculate, onProgressChange }: StepCalcul
     }
   }, [onProgressChange])
 
+  useEffect(() => {
+    if (initialGoal) {
+      setLoanGoal(initialGoal)
+      const visible = getVisibleSteps()
+      if (visible.length > 0 && visible[0].id === "goal") {
+        setCurrentStep(1)
+      } else {
+        setCurrentStep(0)
+      }
+    }
+  }, [initialGoal])
+
   return (
     <Card className="p-6">
-      <div className="space-y-4">
-        <div className="text-center">
-          <h3 className="text-lg font-semibold">{currentStepData?.title}</h3>
-          {currentStepData?.description && (
-            <p className="text-gray-500 text-sm">{currentStepData.description}</p>
-          )}
-          
-          {/* Step Indicator Dots */}
-          <div className="flex justify-center items-center gap-2 mt-4">
-            {visibleSteps.map((step, index) => (
-              <div
-                key={step.id}
-                className={`w-2 h-2 rounded-full transition-all duration-200 ${
-                  index === currentStep
-                    ? "bg-primary w-4" // Current step is wider and primary color
-                    : index < currentStep
-                    ? "bg-primary/40" // Completed steps are faded primary
-                    : "bg-gray-200" // Future steps are gray
-                }`}
-                title={step.title}
-              />
-            ))}
+      {currentStepData?.id === "goal" ? (
+        // Single-column layout for goal selection
+        <div className="space-y-4">
+          <div className="text-center">
+            <h3 className="text-lg font-semibold">{currentStepData?.title}</h3>
+            {currentStepData?.description && (
+              <p className="text-gray-500 text-sm">{currentStepData.description}</p>
+            )}
+            {/* Step Indicator Dots */}
+            <div className="flex justify-center items-center gap-2 mt-4">
+              {visibleSteps.map((step, index) => (
+                <div
+                  key={step.id}
+                  className={`w-2 h-2 rounded-full transition-all duration-200 ${
+                    index === currentStep
+                      ? "bg-primary w-4"
+                      : index < currentStep
+                      ? "bg-primary/40"
+                      : "bg-gray-200"
+                  }`}
+                  title={step.title}
+                />
+              ))}
+            </div>
           </div>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentStepData?.id}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+            >
+              {currentStepData && renderStepContent(currentStepData)}
+            </motion.div>
+          </AnimatePresence>
         </div>
-
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={currentStepData?.id}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2 }}
-          >
-            {currentStepData && renderStepContent(currentStepData)}
-          </motion.div>
-        </AnimatePresence>
-      </div>
+      ) : (
+        // Two-column layout for all other steps
+        <>
+          <div className="flex flex-col md:flex-row gap-8">
+            {/* Main content column */}
+            <div className="flex-1 min-w-0">
+              <div className="space-y-4">
+                <div className="text-center">
+                  <h3 className="text-lg font-semibold">{currentStepData?.title}</h3>
+                  {currentStepData?.description && (
+                    <p className="text-gray-500 text-sm">{currentStepData.description}</p>
+                  )}
+                  {/* Step Indicator Dots */}
+                  <div className="flex justify-center items-center gap-2 mt-4">
+                    {visibleSteps.map((step, index) => (
+                      <div
+                        key={step.id}
+                        className={`w-2 h-2 rounded-full transition-all duration-200 ${
+                          index === currentStep
+                            ? "bg-primary w-4"
+                            : index < currentStep
+                            ? "bg-primary/40"
+                            : "bg-gray-200"
+                        }`}
+                        title={step.title}
+                      />
+                    ))}
+                  </div>
+                </div>
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={currentStepData?.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    {currentStepData && renderStepContent(currentStepData)}
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+            </div>
+            {/* Sidebar column */}
+            <div className="hidden md:block w-80 flex-shrink-0">
+              <StepSidebar />
+            </div>
+          </div>
+          {/* Mobile sidebar below */}
+          <div className="block md:hidden mt-8">
+            <StepSidebar />
+          </div>
+        </>
+      )}
     </Card>
   )
 } 
